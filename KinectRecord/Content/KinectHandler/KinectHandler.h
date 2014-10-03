@@ -30,8 +30,10 @@ public:
 	Platform::Array<WindowsPreview::Kinect::CameraSpacePoint>^ Get3DData();
 	Platform::Array<WindowsPreview::Kinect::ColorSpacePoint>^ GetUVData();
 	Windows::Storage::Streams::Buffer^ GetColorData();
-	bool HasUnreadDepthData();
-	bool HasUnreadColorData();
+	Platform::Array<WindowsPreview::Kinect::CameraSpacePoint>^ GetHands() { handUnread = false; return hands; }
+	bool HasUnreadDepthData() { return depthUnread; }
+	bool HasUnreadColorData() { return colorUnread; }
+	bool HasUnreadHandData() { return handUnread; }
 	int GetNFrames() { return nFrames; }
 
 private:
@@ -48,17 +50,21 @@ private:
 	bool                    saveScreenshot;
 	bool					depthUnread;
 	bool					colorUnread;
+	bool					handUnread;
 	FILE*					DepthOutFile;
 	FILE*					UVOutFile;
 
 	// Current Kinect
-	WindowsPreview::Kinect::KinectSensor^ kinectSensor;
+	WindowsPreview::Kinect::KinectSensor^ m_kinectSensor;
 
 	WindowsPreview::Kinect::DepthFrameSource^ depthFrameSource;
 	WindowsPreview::Kinect::DepthFrameReader^ depthFrameReader;
 
 	WindowsPreview::Kinect::ColorFrameSource^ colorFrameSource;
 	WindowsPreview::Kinect::ColorFrameReader^ colorFrameReader;
+	
+	WindowsPreview::Kinect::BodyFrameSource^ bodyFrameSource;
+	WindowsPreview::Kinect::BodyFrameReader^ bodyFrameReader;
 
 	// Coordinate mapper
 	WindowsPreview::Kinect::CoordinateMapper^	coordinateMapper;
@@ -71,22 +77,11 @@ private:
 	Platform::Array<uint16>^ m_depthData;
 	Windows::Storage::Streams::Buffer^ m_colorBuffer;
 
+	Platform::Collections::Vector<WindowsPreview::Kinect::Body ^>^ bodies;
+	Platform::Array<WindowsPreview::Kinect::CameraSpacePoint>^ hands;
+
 	void KinectHandler::DepthReader_FrameArrived(WindowsPreview::Kinect::DepthFrameReader^ sender, WindowsPreview::Kinect::DepthFrameArrivedEventArgs^ e);
 	void KinectHandler::ColorReader_FrameArrived(WindowsPreview::Kinect::ColorFrameReader^ sender, WindowsPreview::Kinect::ColorFrameArrivedEventArgs^ e);
-
-	/// <summary>
-	/// Handle new depth data
-	/// <param name="nTime">timestamp of frame</param>
-	/// <param name="pDepthBuffer">pointer to depth frame data</param>
-	/// <param name="nDepthWidth">width (in pixels) of input depth image data</param>
-	/// <param name="nDepthHeight">height (in pixels) of input depth image data</param>
-	/// <param name="nMinDepth">minimum reliable depth</param>
-	/// <param name="nMaxDepth">maximum reliable depth</param>
-	/// <param name="pColorBuffer">pointer to color frame data</param>
-	/// <param name="nColorWidth">width (in pixels) of input color image data</param>
-	/// <param name="nColorHeight">height (in pixels) of input color image data</param>
-	/// </summary>
-	void                    ProcessFrames(INT64 nTime, const UINT16* pDepthBuffer, int nHeight, int nWidth, USHORT nMinDepth, USHORT nMaxDepth, RGBQUAD* pColorBuffer, int nColorWidth, int nColorHeight);
-
+	void KinectHandler::BodyReader_FrameArrived(WindowsPreview::Kinect::BodyFrameReader^ sender, WindowsPreview::Kinect::BodyFrameArrivedEventArgs^ e);
 };
 

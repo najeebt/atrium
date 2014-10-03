@@ -32,6 +32,7 @@ namespace KinectRecord
 		void RenderShadowMap();
 		void UpdateAllConstantBuffers();
 		ID3D11DepthStencilView* GetShadowDepthView() { return m_shadowDepthView.Get(); }
+		void UpdateLightPositions(WindowsPreview::Kinect::CameraSpacePoint p);
 
 		// shadow support
 		void DetermineShadowFeatureSupport();
@@ -84,6 +85,8 @@ namespace KinectRecord
 
 		// Controls the size of the shadow map.
 		float   m_shadowMapDimension;
+
+		WindowsPreview::Kinect::CameraSpacePoint lPos;
 
 		// Shadow buffer Direct3D resources.
 		Microsoft::WRL::ComPtr<ID3D11Texture2D>          m_shadowMap;

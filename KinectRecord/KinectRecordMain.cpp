@@ -297,6 +297,9 @@ void KinectRecordMain::Update()
 
 			// DirectX rendering
 			m_sceneRenderer->UpdateVertexBuffer(m_kinectHandler->Get3DData());
+			if (m_kinectHandler->HasUnreadHandData()) {
+				m_sceneRenderer->UpdateLightPositions(m_kinectHandler->GetHands()->get(0));
+			}
 			m_sceneRenderer->UpdateTime(-1);
 			if (m_streamColor) {
 				m_sceneRenderer->UpdateColorBuffer(m_kinectHandler->GetColorData(), m_kinectHandler->GetUVData());

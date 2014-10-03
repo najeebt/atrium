@@ -66,32 +66,11 @@ void KinectRender::CreateWindowSizeDependentResources()
 
 	XMStoreFloat(&m_sceneConstantBufferData.time, XMLoadFloat(&m_time));
 
-	// Set up the light view.
-	{
-		GCamera lightCam;
-
-		lightCam.InitProjMatrix(XM_PIDIV2, 2048, 2048, 1.0f, 20.0f);
-
-		XMStoreFloat4x4(
-			&m_lightViewProjectionBufferData.projection,
-			XMLoadFloat4x4(&lightCam.Proj()));
-
-		static const XMFLOAT3 eye = { -5.0f, 2.0f, -3.0f };
-		static const XMFLOAT3 at = { 0.0f, 0.0f, 3.0f };
-
-		lightCam.Position(eye);
-		lightCam.Target(at);
-
-		XMStoreFloat4x4(
-			&m_lightViewProjectionBufferData.view,
-			XMLoadFloat4x4(&lightCam.View()));
-		
-		XMStoreFloat4x4(&m_lightViewProjectionBufferData.model, XMMatrixTranspose(XMMatrixRotationZ(0)));
-
-		// Store the light position to help calculate the shadow offset.
-		XMVECTORF32 eyeV = { -5.0f, 2.0f, -3.0f, 1.0f };
-		XMStoreFloat3(&m_sceneConstantBufferData.lightVec, eyeV);
-	}
+	WindowsPreview::Kinect::CameraSpacePoint p;
+	p.X = -5.0;
+	p.Y = 2.0;
+	p.Z = -3.0;
+	UpdateLightPositions(p);
 }
 
 void KinectRender::UpdateTime(int time)
@@ -103,6 +82,34 @@ void KinectRender::UpdateTime(int time)
 	else {
 		m_time = time;
 	}
+}
+
+void KinectRender::UpdateLightPositions(WindowsPreview::Kinect::CameraSpacePoint p)
+{
+	// Set up the light view.
+	GCamera lightCam;
+
+	lightCam.InitProjMatrix(XM_PIDIV2, 2048, 2048, 1.0f, 20.0f);
+
+	XMStoreFloat4x4(
+		&m_lightViewProjectionBufferData.projection,
+		XMLoadFloat4x4(&lightCam.Proj()));
+
+	static const XMFLOAT3 eye = { p.X, p.Y, p.Z };
+	static const XMFLOAT3 at = { 0.0f, 0.0f, 3.0f };
+
+	lightCam.Position(eye);
+	lightCam.Target(at);
+
+	XMStoreFloat4x4(
+		&m_lightViewProjectionBufferData.view,
+		XMLoadFloat4x4(&lightCam.View()));
+
+	XMStoreFloat4x4(&m_lightViewProjectionBufferData.model, XMMatrixTranspose(XMMatrixRotationZ(0)));
+
+	// Store the light position to help calculate the shadow offset.
+	XMVECTORF32 eyeV = { p.X, p.Y, p.Z, 1.0f };
+	XMStoreFloat3(&m_sceneConstantBufferData.lightVec, eyeV);
 }
 
 void KinectRender::UpdateVertexBuffer(Platform::Array<WindowsPreview::Kinect::CameraSpacePoint>^ cameraSpacePoints)

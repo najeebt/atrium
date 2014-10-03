@@ -265,7 +265,7 @@
     <FxCompile Include="Content\Rendering\Shaders\Vertex\BaseVertexShader.hlsl">
       <ShaderType>Vertex</ShaderType>
     </FxCompile>
-    <FxCompile Include="DefaultGeometryShader.hlsl">
+    <FxCompile Include="Content\Rendering\Shaders\Geometry\DefaultGeometryShader.hlsl">
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Geometry</ShaderType>
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">4.0</ShaderModel>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|ARM'">Geometry</ShaderType>
@@ -329,7 +329,7 @@
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Geometry</ShaderType>
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">4.0</ShaderModel>
     </FxCompile>
-    <FxCompile Include="KeyLightPixelShader.hlsl">
+    <FxCompile Include="Content\Rendering\Shaders\Pixel\KeyLightPixelShader.hlsl">
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Pixel</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|ARM'">Pixel</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>

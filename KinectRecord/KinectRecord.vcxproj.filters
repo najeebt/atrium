@@ -122,12 +122,6 @@
     <Page Include="DirectXPage.xaml" />
   </ItemGroup>
   <ItemGroup>
-    <FxCompile Include="KeyLightPixelShader.hlsl">
-      <Filter>Rendering\Shaders\Pixel</Filter>
-    </FxCompile>
-    <FxCompile Include="DefaultGeometryShader.hlsl">
-      <Filter>Rendering\Shaders\Geometry</Filter>
-    </FxCompile>
     <FxCompile Include="Content\Rendering\Shaders\Geometry\PointGeometryShader.hlsl">
       <Filter>Rendering\Shaders\Geometry</Filter>
     </FxCompile>
@@ -157,6 +151,12 @@
     </FxCompile>
     <FxCompile Include="Content\Rendering\Shaders\Vertex\ShadowVertexShader.hlsl">
       <Filter>Rendering\Shaders\Vertex</Filter>
+    </FxCompile>
+    <FxCompile Include="Content\Rendering\Shaders\Pixel\KeyLightPixelShader.hlsl">
+      <Filter>Rendering\Shaders\Pixel</Filter>
+    </FxCompile>
+    <FxCompile Include="Content\Rendering\Shaders\Geometry\DefaultGeometryShader.hlsl">
+      <Filter>Rendering\Shaders\Geometry</Filter>
     </FxCompile>
   </ItemGroup>
   <ItemGroup>

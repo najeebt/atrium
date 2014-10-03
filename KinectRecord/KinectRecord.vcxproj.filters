@@ -1,0 +1,165 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Common">
+      <UniqueIdentifier>0ee64b65-8dfd-4810-8809-9e3819f9b575</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Assets">
+      <UniqueIdentifier>f328aed0-e0e0-4715-9ee4-9292dc03ed5f</UniqueIdentifier>
+      <Extensions>bmp;fbx;gif;jpg;jpeg;tga;tiff;tif;png</Extensions>
+    </Filter>
+    <ClInclude Include="Common\DirectXHelper.h">
+      <Filter>Common</Filter>
+    </ClInclude>
+    <ClInclude Include="Common\StepTimer.h">
+      <Filter>Common</Filter>
+    </ClInclude>
+    <ClInclude Include="Common\DeviceResources.h">
+      <Filter>Common</Filter>
+    </ClInclude>
+    <ClCompile Include="Common\DeviceResources.cpp">
+      <Filter>Common</Filter>
+    </ClCompile>
+    <Image Include="Assets\Logo.png">
+      <Filter>Assets</Filter>
+    </Image>
+    <Image Include="Assets\SmallLogo.png">
+      <Filter>Assets</Filter>
+    </Image>
+    <Image Include="Assets\StoreLogo.png">
+      <Filter>Assets</Filter>
+    </Image>
+    <Image Include="Assets\SplashScreen.png">
+      <Filter>Assets</Filter>
+    </Image>
+    <Filter Include="Rendering">
+      <UniqueIdentifier>{8c0a2c0c-c5da-4f7d-8aa5-97242b16f7ce}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Rendering\GCamera">
+      <UniqueIdentifier>{f95b7506-d887-401f-a452-4aeb8c354ee5}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Rendering\KinectRender">
+      <UniqueIdentifier>{4e08dd44-dbc6-4251-ae2d-9370698b1120}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Rendering\Shaders">
+      <UniqueIdentifier>{248b3d17-cc64-4f24-a060-d5e4a8ec17f1}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Rendering\TextRender">
+      <UniqueIdentifier>{6f8246f7-5f87-4898-b173-693518292e61}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="KinectHandler">
+      <UniqueIdentifier>{dddec116-dae7-49a1-bd31-56b2caec4aeb}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Rendering\Shaders\Pixel">
+      <UniqueIdentifier>{1caa60a6-3da6-49ce-87a0-e4bfb5d8163b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Rendering\Shaders\Vertex">
+      <UniqueIdentifier>{ee8526a3-ddcc-4676-8ea8-9822b509aea9}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Rendering\Shaders\Geometry">
+      <UniqueIdentifier>{e9f74663-3a11-46c9-8945-f9a9067ec9c4}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ApplicationDefinition Include="App.xaml" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="App.xaml.cpp" />
+    <ClCompile Include="KinectRecordMain.cpp" />
+    <ClCompile Include="DirectXPage.xaml.cpp" />
+    <ClCompile Include="pch.cpp" />
+    <ClCompile Include="Content\GCamera.cpp">
+      <Filter>Rendering\GCamera</Filter>
+    </ClCompile>
+    <ClCompile Include="Content\KinectRender.cpp">
+      <Filter>Rendering\KinectRender</Filter>
+    </ClCompile>
+    <ClCompile Include="Content\SampleFpsTextRenderer.cpp">
+      <Filter>Rendering\TextRender</Filter>
+    </ClCompile>
+    <ClCompile Include="KinectHandler.cpp">
+      <Filter>KinectHandler</Filter>
+    </ClCompile>
+    <ClCompile Include="ShaderCompiler.cpp">
+      <Filter>Rendering\Shaders</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="App.xaml.h" />
+    <ClInclude Include="KinectRecordMain.h" />
+    <ClInclude Include="DirectXPage.xaml.h" />
+    <ClInclude Include="pch.h" />
+    <ClInclude Include="resource.h" />
+    <ClInclude Include="Content\GCamera.h">
+      <Filter>Rendering\GCamera</Filter>
+    </ClInclude>
+    <ClInclude Include="Content\GUtility.h">
+      <Filter>Rendering\GCamera</Filter>
+    </ClInclude>
+    <ClInclude Include="Content\KinectRender.h">
+      <Filter>Rendering\KinectRender</Filter>
+    </ClInclude>
+    <ClInclude Include="Content\SampleFpsTextRenderer.h">
+      <Filter>Rendering\TextRender</Filter>
+    </ClInclude>
+    <ClInclude Include="Content\ShaderStructures.h">
+      <Filter>Rendering\Shaders</Filter>
+    </ClInclude>
+    <ClInclude Include="KinectHandler.h">
+      <Filter>KinectHandler</Filter>
+    </ClInclude>
+    <ClInclude Include="ShaderCompiler.h">
+      <Filter>Rendering\Shaders</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <AppxManifest Include="Package.appxmanifest" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="KinectRecord_TemporaryKey.pfx" />
+  </ItemGroup>
+  <ItemGroup>
+    <Page Include="DirectXPage.xaml" />
+  </ItemGroup>
+  <ItemGroup>
+    <FxCompile Include="KeyLightPixelShader.hlsl">
+      <Filter>Rendering\Shaders\Pixel</Filter>
+    </FxCompile>
+    <FxCompile Include="SimpleColorPixelShader.hlsl">
+      <Filter>Rendering\Shaders\Pixel</Filter>
+    </FxCompile>
+    <FxCompile Include="Content\BaseVertexShader.hlsl">
+      <Filter>Rendering\Shaders\Vertex</Filter>
+    </FxCompile>
+    <FxCompile Include="TriGeometryShader.hlsl">
+      <Filter>Rendering\Shaders\Geometry</Filter>
+    </FxCompile>
+    <FxCompile Include="RainbowDepthPixelShader.hlsl">
+      <Filter>Rendering\Shaders\Pixel</Filter>
+    </FxCompile>
+    <FxCompile Include="Content\BasePixelShader.hlsl">
+      <Filter>Rendering\Shaders\Pixel</Filter>
+    </FxCompile>
+    <FxCompile Include="PointGeometryShader.hlsl">
+      <Filter>Rendering\Shaders\Geometry</Filter>
+    </FxCompile>
+    <FxCompile Include="SmallTriGeometryShader.hlsl">
+      <Filter>Rendering\Shaders\Geometry</Filter>
+    </FxCompile>
+    <FxCompile Include="LightRigPixelShader.hlsl">
+      <Filter>Rendering\Shaders\Pixel</Filter>
+    </FxCompile>
+    <FxCompile Include="ShadowVertexShader.hlsl">
+      <Filter>Rendering\Shaders\Vertex</Filter>
+    </FxCompile>
+    <FxCompile Include="ShadowGeometryShader.hlsl">
+      <Filter>Rendering\Shaders\Geometry</Filter>
+    </FxCompile>
+    <FxCompile Include="DefaultGeometryShader.hlsl">
+      <Filter>Rendering\Shaders\Geometry</Filter>
+    </FxCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="KinectRecord.rc" />
+  </ItemGroup>
+</Project>

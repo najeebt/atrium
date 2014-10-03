@@ -213,35 +213,35 @@
       <DependentUpon>App.xaml</DependentUpon>
     </ClInclude>
     <ClInclude Include="Common\DeviceResources.h" />
-    <ClInclude Include="Content\GCamera.h" />
-    <ClInclude Include="Content\GUtility.h" />
-    <ClInclude Include="KinectHandler.h" />
+    <ClInclude Include="Content\Rendering\GCamera\GCamera.h" />
+    <ClInclude Include="Content\Rendering\GCamera\GUtility.h" />
+    <ClInclude Include="Content\KinectHandler\KinectHandler.h" />
     <ClInclude Include="KinectRecordMain.h" />
     <ClInclude Include="DirectXPage.xaml.h">
       <DependentUpon>DirectXPage.xaml</DependentUpon>
     </ClInclude>
     <ClInclude Include="Common\DirectXHelper.h" />
     <ClInclude Include="Common\StepTimer.h" />
-    <ClInclude Include="Content\KinectRender.h" />
-    <ClInclude Include="Content\SampleFpsTextRenderer.h" />
-    <ClInclude Include="Content\ShaderStructures.h" />
+    <ClInclude Include="Content\Rendering\KinectRender\KinectRender.h" />
+    <ClInclude Include="Content\Rendering\TextRender\SampleFpsTextRenderer.h" />
+    <ClInclude Include="Content\Rendering\Shaders\ShaderStructures.h" />
     <ClInclude Include="pch.h" />
     <ClInclude Include="resource.h" />
-    <ClInclude Include="ShaderCompiler.h" />
+    <ClInclude Include="Content\Rendering\ShaderCompiler\ShaderCompiler.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="App.xaml.cpp">
       <DependentUpon>App.xaml</DependentUpon>
     </ClCompile>
     <ClCompile Include="Common\DeviceResources.cpp" />
-    <ClCompile Include="Content\GCamera.cpp" />
-    <ClCompile Include="KinectHandler.cpp" />
+    <ClCompile Include="Content\Rendering\GCamera\GCamera.cpp" />
+    <ClCompile Include="Content\KinectHandler\KinectHandler.cpp" />
     <ClCompile Include="KinectRecordMain.cpp" />
     <ClCompile Include="DirectXPage.xaml.cpp">
       <DependentUpon>DirectXPage.xaml</DependentUpon>
     </ClCompile>
-    <ClCompile Include="Content\SampleFpsTextRenderer.cpp" />
-    <ClCompile Include="Content\KinectRender.cpp" />
+    <ClCompile Include="Content\Rendering\TextRender\SampleFpsTextRenderer.cpp" />
+    <ClCompile Include="Content\Rendering\KinectRender\KinectRender.cpp" />
     <ClCompile Include="pch.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
@@ -250,7 +250,7 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
     </ClCompile>
-    <ClCompile Include="ShaderCompiler.cpp" />
+    <ClCompile Include="Content\Rendering\ShaderCompiler\ShaderCompiler.cpp" />
   </ItemGroup>
   <ItemGroup>
     <AppxManifest Include="Package.appxmanifest">
@@ -259,10 +259,10 @@
     <None Include="KinectRecord_TemporaryKey.pfx" />
   </ItemGroup>
   <ItemGroup>
-    <FxCompile Include="Content\BasePixelShader.hlsl">
+    <FxCompile Include="Content\Rendering\Shaders\Pixel\BasePixelShader.hlsl">
       <ShaderType>Pixel</ShaderType>
     </FxCompile>
-    <FxCompile Include="Content\BaseVertexShader.hlsl">
+    <FxCompile Include="Content\Rendering\Shaders\Vertex\BaseVertexShader.hlsl">
       <ShaderType>Vertex</ShaderType>
     </FxCompile>
     <FxCompile Include="DefaultGeometryShader.hlsl">
@@ -279,7 +279,7 @@
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Geometry</ShaderType>
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">4.0</ShaderModel>
     </FxCompile>
-    <FxCompile Include="ShadowGeometryShader.hlsl">
+    <FxCompile Include="Content\Rendering\Shaders\Geometry\ShadowGeometryShader.hlsl">
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Geometry</ShaderType>
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">4.0</ShaderModel>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|ARM'">Geometry</ShaderType>
@@ -293,7 +293,7 @@
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Geometry</ShaderType>
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">4.0</ShaderModel>
     </FxCompile>
-    <FxCompile Include="LightRigPixelShader.hlsl">
+    <FxCompile Include="Content\Rendering\Shaders\Pixel\LightRigPixelShader.hlsl">
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Pixel</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|ARM'">Pixel</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
@@ -301,7 +301,7 @@
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|ARM'">Pixel</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Pixel</ShaderType>
     </FxCompile>
-    <FxCompile Include="SmallTriGeometryShader.hlsl">
+    <FxCompile Include="Content\Rendering\Shaders\Geometry\SmallTriGeometryShader.hlsl">
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Geometry</ShaderType>
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">4.0</ShaderModel>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|ARM'">Geometry</ShaderType>
@@ -315,7 +315,7 @@
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Geometry</ShaderType>
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">4.0</ShaderModel>
     </FxCompile>
-    <FxCompile Include="PointGeometryShader.hlsl">
+    <FxCompile Include="Content\Rendering\Shaders\Geometry\PointGeometryShader.hlsl">
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Geometry</ShaderType>
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">4.0</ShaderModel>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|ARM'">Geometry</ShaderType>
@@ -337,7 +337,7 @@
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|ARM'">Pixel</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Pixel</ShaderType>
     </FxCompile>
-    <FxCompile Include="RainbowDepthPixelShader.hlsl">
+    <FxCompile Include="Content\Rendering\Shaders\Pixel\RainbowDepthPixelShader.hlsl">
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Pixel</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|ARM'">Pixel</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
@@ -345,7 +345,7 @@
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|ARM'">Pixel</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Pixel</ShaderType>
     </FxCompile>
-    <FxCompile Include="SimpleColorPixelShader.hlsl">
+    <FxCompile Include="Content\Rendering\Shaders\Pixel\SimpleColorPixelShader.hlsl">
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Pixel</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|ARM'">Pixel</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
@@ -353,7 +353,7 @@
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|ARM'">Pixel</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Pixel</ShaderType>
     </FxCompile>
-    <FxCompile Include="TriGeometryShader.hlsl">
+    <FxCompile Include="Content\Rendering\Shaders\Geometry\TriGeometryShader.hlsl">
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Geometry</ShaderType>
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">4.0</ShaderModel>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|ARM'">Geometry</ShaderType>
@@ -367,7 +367,7 @@
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Geometry</ShaderType>
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">4.0</ShaderModel>
     </FxCompile>
-    <FxCompile Include="ShadowVertexShader.hlsl">
+    <FxCompile Include="Content\Rendering\Shaders\Vertex\ShadowVertexShader.hlsl">
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Vertex</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|ARM'">Vertex</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Vertex</ShaderType>

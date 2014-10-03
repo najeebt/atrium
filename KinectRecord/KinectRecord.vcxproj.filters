@@ -68,19 +68,19 @@
     <ClCompile Include="KinectRecordMain.cpp" />
     <ClCompile Include="DirectXPage.xaml.cpp" />
     <ClCompile Include="pch.cpp" />
-    <ClCompile Include="Content\GCamera.cpp">
+    <ClCompile Include="Content\Rendering\GCamera\GCamera.cpp">
       <Filter>Rendering\GCamera</Filter>
     </ClCompile>
-    <ClCompile Include="Content\KinectRender.cpp">
+    <ClCompile Include="Content\Rendering\KinectRender\KinectRender.cpp">
       <Filter>Rendering\KinectRender</Filter>
     </ClCompile>
-    <ClCompile Include="Content\SampleFpsTextRenderer.cpp">
+    <ClCompile Include="Content\Rendering\TextRender\SampleFpsTextRenderer.cpp">
       <Filter>Rendering\TextRender</Filter>
     </ClCompile>
-    <ClCompile Include="KinectHandler.cpp">
+    <ClCompile Include="Content\KinectHandler\KinectHandler.cpp">
       <Filter>KinectHandler</Filter>
     </ClCompile>
-    <ClCompile Include="ShaderCompiler.cpp">
+    <ClCompile Include="Content\Rendering\ShaderCompiler\ShaderCompiler.cpp">
       <Filter>Rendering\Shaders</Filter>
     </ClCompile>
   </ItemGroup>
@@ -90,25 +90,25 @@
     <ClInclude Include="DirectXPage.xaml.h" />
     <ClInclude Include="pch.h" />
     <ClInclude Include="resource.h" />
-    <ClInclude Include="Content\GCamera.h">
+    <ClInclude Include="Content\Rendering\GCamera\GCamera.h">
       <Filter>Rendering\GCamera</Filter>
     </ClInclude>
-    <ClInclude Include="Content\GUtility.h">
+    <ClInclude Include="Content\Rendering\GCamera\GUtility.h">
       <Filter>Rendering\GCamera</Filter>
     </ClInclude>
-    <ClInclude Include="Content\KinectRender.h">
+    <ClInclude Include="Content\Rendering\KinectRender\KinectRender.h">
       <Filter>Rendering\KinectRender</Filter>
     </ClInclude>
-    <ClInclude Include="Content\SampleFpsTextRenderer.h">
+    <ClInclude Include="Content\Rendering\TextRender\SampleFpsTextRenderer.h">
       <Filter>Rendering\TextRender</Filter>
     </ClInclude>
-    <ClInclude Include="Content\ShaderStructures.h">
+    <ClInclude Include="Content\Rendering\Shaders\ShaderStructures.h">
       <Filter>Rendering\Shaders</Filter>
     </ClInclude>
-    <ClInclude Include="KinectHandler.h">
+    <ClInclude Include="Content\KinectHandler\KinectHandler.h">
       <Filter>KinectHandler</Filter>
     </ClInclude>
-    <ClInclude Include="ShaderCompiler.h">
+    <ClInclude Include="Content\Rendering\ShaderCompiler\ShaderCompiler.h">
       <Filter>Rendering\Shaders</Filter>
     </ClInclude>
   </ItemGroup>
@@ -125,38 +125,38 @@
     <FxCompile Include="KeyLightPixelShader.hlsl">
       <Filter>Rendering\Shaders\Pixel</Filter>
     </FxCompile>
-    <FxCompile Include="SimpleColorPixelShader.hlsl">
-      <Filter>Rendering\Shaders\Pixel</Filter>
-    </FxCompile>
-    <FxCompile Include="Content\BaseVertexShader.hlsl">
-      <Filter>Rendering\Shaders\Vertex</Filter>
-    </FxCompile>
-    <FxCompile Include="TriGeometryShader.hlsl">
-      <Filter>Rendering\Shaders\Geometry</Filter>
-    </FxCompile>
-    <FxCompile Include="RainbowDepthPixelShader.hlsl">
-      <Filter>Rendering\Shaders\Pixel</Filter>
-    </FxCompile>
-    <FxCompile Include="Content\BasePixelShader.hlsl">
-      <Filter>Rendering\Shaders\Pixel</Filter>
-    </FxCompile>
-    <FxCompile Include="PointGeometryShader.hlsl">
-      <Filter>Rendering\Shaders\Geometry</Filter>
-    </FxCompile>
-    <FxCompile Include="SmallTriGeometryShader.hlsl">
-      <Filter>Rendering\Shaders\Geometry</Filter>
-    </FxCompile>
-    <FxCompile Include="LightRigPixelShader.hlsl">
-      <Filter>Rendering\Shaders\Pixel</Filter>
-    </FxCompile>
-    <FxCompile Include="ShadowVertexShader.hlsl">
-      <Filter>Rendering\Shaders\Vertex</Filter>
-    </FxCompile>
-    <FxCompile Include="ShadowGeometryShader.hlsl">
-      <Filter>Rendering\Shaders\Geometry</Filter>
-    </FxCompile>
     <FxCompile Include="DefaultGeometryShader.hlsl">
       <Filter>Rendering\Shaders\Geometry</Filter>
+    </FxCompile>
+    <FxCompile Include="Content\Rendering\Shaders\Geometry\PointGeometryShader.hlsl">
+      <Filter>Rendering\Shaders\Geometry</Filter>
+    </FxCompile>
+    <FxCompile Include="Content\Rendering\Shaders\Geometry\ShadowGeometryShader.hlsl">
+      <Filter>Rendering\Shaders\Geometry</Filter>
+    </FxCompile>
+    <FxCompile Include="Content\Rendering\Shaders\Geometry\SmallTriGeometryShader.hlsl">
+      <Filter>Rendering\Shaders\Geometry</Filter>
+    </FxCompile>
+    <FxCompile Include="Content\Rendering\Shaders\Geometry\TriGeometryShader.hlsl">
+      <Filter>Rendering\Shaders\Geometry</Filter>
+    </FxCompile>
+    <FxCompile Include="Content\Rendering\Shaders\Pixel\BasePixelShader.hlsl">
+      <Filter>Rendering\Shaders\Pixel</Filter>
+    </FxCompile>
+    <FxCompile Include="Content\Rendering\Shaders\Pixel\LightRigPixelShader.hlsl">
+      <Filter>Rendering\Shaders\Pixel</Filter>
+    </FxCompile>
+    <FxCompile Include="Content\Rendering\Shaders\Pixel\RainbowDepthPixelShader.hlsl">
+      <Filter>Rendering\Shaders\Pixel</Filter>
+    </FxCompile>
+    <FxCompile Include="Content\Rendering\Shaders\Pixel\SimpleColorPixelShader.hlsl">
+      <Filter>Rendering\Shaders\Pixel</Filter>
+    </FxCompile>
+    <FxCompile Include="Content\Rendering\Shaders\Vertex\BaseVertexShader.hlsl">
+      <Filter>Rendering\Shaders\Vertex</Filter>
+    </FxCompile>
+    <FxCompile Include="Content\Rendering\Shaders\Vertex\ShadowVertexShader.hlsl">
+      <Filter>Rendering\Shaders\Vertex</Filter>
     </FxCompile>
   </ItemGroup>
   <ItemGroup>

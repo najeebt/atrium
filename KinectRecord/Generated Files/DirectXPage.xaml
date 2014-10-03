@@ -1,0 +1,66 @@
+﻿<Page
+    x:Class="KinectRecord.DirectXPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:local="using:KinectRecord"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    mc:Ignorable="d">
+    <Page.Resources>
+        <Style x:Key="BaseTextBlockStyle" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="{ThemeResource ControlContentThemeFontSize}"/>
+            <Setter Property="FontFamily" Value="{ThemeResource ContentControlThemeFontFamily}"/>
+            <Setter Property="SelectionHighlightColor" Value="{ThemeResource TextSelectionHighlightColorThemeBrush}"/>
+            <Setter Property="TextTrimming" Value="CharacterEllipsis"/>
+            <Setter Property="TextWrapping" Value="Wrap"/>
+            <Setter Property="Typography.StylisticSet20" Value="True"/>
+            <Setter Property="Typography.DiscretionaryLigatures" Value="True"/>
+            <Setter Property="Typography.CaseSensitiveForms" Value="True"/>
+            <Setter Property="LineHeight" Value="20"/>
+            <Setter Property="LineStackingStrategy" Value="BlockLineHeight"/>
+            <Setter Property="TextLineBounds" Value="TrimToBaseline"/>
+            <Setter Property="OpticalMarginAlignment" Value="TrimSideBearings"/>
+        </Style>
+        <Style x:Key="REC_STYLE" BasedOn="{StaticResource BaseTextBlockStyle}" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="26.667"/>
+            <Setter Property="FontWeight" Value="Bold"/>
+            <Setter Property="IsColorFontEnabled" Value="True" />
+            <Setter Property="Foreground" Value="Red" />
+            <Setter Property="LineHeight" Value="30"/>
+        </Style>
+    </Page.Resources>
+
+    <SwapChainPanel x:Name="swapChainPanel" HorizontalAlignment="Right">
+        <StackPanel Margin="10,101,1157,127" Orientation="Vertical">
+            <TextBlock x:ConnectionId='3' Text="ATRIUM"
+        		HorizontalAlignment="Left"
+        		VerticalAlignment="Top"
+        		FontSize="30"                                               />
+            <Button x:ConnectionId='4' x:Name="PickAFileButton" Margin="0,20,0,0" Content="SAVE TO"                               Width="91"/>
+            <TextBlock x:ConnectionId='5' x:Name="FolderDisplay" Margin="0,0,0,20" TextWrapping="Wrap" Text="&lt;none selected&gt;"                                                  />
+            <TextBlock x:ConnectionId='6' TextWrapping="Wrap" Text="TAKE" Style="{StaticResource BodyTextBlockStyle}" Height="30"                                                />
+            <TextBlock x:Name="TakeDisplay" Margin="0,0,0,20" TextWrapping="Wrap" Text="&lt;none&gt;"/>
+            <Button x:ConnectionId='7' x:Name="RecordButton" Foreground="Red" Content="RECORD" HorizontalAlignment="Left" VerticalAlignment="Top"               />
+            <Button x:ConnectionId='8' x:Name="PlaybackButton" Content="REPLAY" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Margin="0,0,107,0"                       />
+            <Button x:ConnectionId='9' Content="EXPORT" HorizontalAlignment="Stretch"  VerticalAlignment="Stretch" Margin="0,0,107,40"                       />
+            <CheckBox Content="Depth" HorizontalAlignment="Left" IsChecked="True" IsEnabled="False" VerticalAlignment="Top"/>
+            <CheckBox x:ConnectionId='10' x:Name="ColorCheckBox" Content="Color" HorizontalAlignment="Left" VerticalAlignment="Top"                         />
+            <Button x:ConnectionId='11' Content="Pixel Shader" HorizontalAlignment="Left" Margin="0,20,0,0" VerticalAlignment="Top"                       />
+            <Button x:ConnectionId='12' Content="Vertex Shader" HorizontalAlignment="Left" Margin="0,0,0,0" VerticalAlignment="Top"                       />
+            <Button x:ConnectionId='13' Content="Geometry Shader" HorizontalAlignment="Left" Margin="0,0,0,0" VerticalAlignment="Top"                       />
+        </StackPanel>
+        <TextBlock x:ConnectionId='1' x:Name="RecIndicator" Visibility="Collapsed" HorizontalAlignment="Left" Margin="284,101,0,0" TextWrapping="Wrap" Text="REC" VerticalAlignment="Top" Height="48" Width="165"                                                 Style="{StaticResource REC_STYLE}"/>
+        <Slider x:ConnectionId='2' x:Name="TimeSlider" Visibility="Collapsed" HorizontalAlignment="Left" Minimum="1" Margin="60,708,0,0" VerticalAlignment="Top" Width="1213"                                   />
+    </SwapChainPanel>
+
+    <Page.BottomAppBar>
+        <AppBar x:Name="bottomAppBar" Padding="10,0,10,0">
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Left">
+                <AppBarButton x:ConnectionId='14' AutomationProperties.Name="Sample Button"
+                      AutomationProperties.AutomationId="SampleAppBarButton"
+                                                />
+            </StackPanel>
+        </AppBar>
+    </Page.BottomAppBar>
+</Page>
+

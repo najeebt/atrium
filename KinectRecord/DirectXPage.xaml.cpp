@@ -322,7 +322,7 @@ void KinectRecord::DirectXPage::Button_Click_1(Platform::Object^ sender, Windows
 					m_main->PrepToPlayback();
 					m_main->m_isPlayingBack = true;
 					PlaybackButton->Content = "STOP";
-					TimeSlider->Maximum = m_main->m_cspCache->Size;
+					TimeSlider->Maximum = m_main->m_playbackBuffer->Size;
 				}
 			});
 		}

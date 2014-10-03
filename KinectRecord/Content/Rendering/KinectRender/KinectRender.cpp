@@ -1,6 +1,6 @@
 ﻿#include "pch.h"
 #include "KinectRender.h"
-#include "ShaderCompiler.h"
+#include "..\ShaderCompiler\ShaderCompiler.h"
 
 #include "..\Common\DirectXHelper.h"
 

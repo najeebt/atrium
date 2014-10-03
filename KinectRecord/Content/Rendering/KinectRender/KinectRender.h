@@ -1,10 +1,10 @@
 ﻿#pragma once
 
 #include "..\Common\DeviceResources.h"
-#include "ShaderStructures.h"
+#include "Content\Rendering\Shaders\ShaderStructures.h"
 #include "..\Common\StepTimer.h"
 
-#include "GCamera.h"
+#include "Content\Rendering\GCamera\GCamera.h"
 
 namespace KinectRecord
 {

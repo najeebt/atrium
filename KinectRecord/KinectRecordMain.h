@@ -1,12 +1,16 @@
 ﻿#pragma once
 
+#define MAX_BUFFER_FRAMES 100
+
 #include "Common\StepTimer.h"
 #include "Common\DeviceResources.h"
-#include "Content\KinectRender.h"
-#include "Content\SampleFpsTextRenderer.h"
-#include "KinectHandler.h"
+#include "Content\Rendering\KinectRender\KinectRender.h"
+#include "Content\Rendering\TextRender\SampleFpsTextRenderer.h"
+#include "Content\KinectHandler\KinectHandler.h"
 
-// Renders Direct2D and 3D content on the screen.
+///<summary>
+/// Records and plays back data streams from the Kinect.
+///</summary>
 namespace KinectRecord
 {
 	class KinectRecordMain : public DX::IDeviceNotify
@@ -19,32 +23,46 @@ namespace KinectRecord
 		void TrackingUpdate(int trackingType, float positionX, float positionY);
 		void StopTracking() { m_sceneRenderer->StopTracking(); }
 		bool IsTracking() { return m_sceneRenderer->IsTracking(); }
-		void StreamColor(bool showColor);
 		void StartRenderLoop();
 		void StopRenderLoop();
+		Concurrency::critical_section& GetCriticalSection() { return m_criticalSection; }
+
+		// recording
 		void PrepToRecord();
+		void StreamColor(bool showColor);
+
+		// playback
 		void PrepToPlayback();
+		void CacheFrameForPlayback(int frame);
+
+		// export
 		void ExportTakeToObj();
 		void ExportFrameToObj(Windows::Storage::StorageFolder^ exportFolder, Platform::String^ frameName, Windows::Storage::Streams::IBuffer^ frameData);
-		Concurrency::critical_section& GetCriticalSection() { return m_criticalSection; }
-		void PlaybackSequence(int frame);
+		
 		void UpdateShader(Platform::String^ shaderText, int shaderType) { m_sceneRenderer->UpdateShader(shaderText, shaderType); }
 
 		// IDeviceNotify
 		virtual void OnDeviceLost();
 		virtual void OnDeviceRestored();
 
+		// kinect input handler
+		KinectHandler^ m_kinectHandler;
+
+		// state management (should probably be single-variable state enum)
 		bool m_isRecording;
 		bool m_isPlayingBack;
-		bool m_readCspCache;
-		bool m_streamColor;
 		bool m_isExporting;
+
+		bool m_streamColor;
 
 		int m_currentFrame;
 		int m_currentTake;
 		int m_currentExportFrame;
 
-		KinectHandler^ m_kinectHandler;
+		// playback buffer stores MAX_BUFFER_FRAMES frames of point data
+		Platform::Collections::Vector< Platform::Object^ >^ m_playbackBuffer;
+
+		// winrt file management
 		Collections::IVectorView<Windows::Storage::StorageFile^>^ m_recordFiles;
 		Collections::IVectorView<Windows::Storage::StorageFile^>^ m_exportFiles;
 		Windows::Storage::StorageFolder^ m_sessionFolder;
@@ -52,11 +70,8 @@ namespace KinectRecord
 		Windows::Storage::StorageFolder^ m_exportFromFolder;
 		std::vector<Windows::Storage::StorageFile^> m_shaderFiles;
 
+		// tracking for recompiling shaders
 		std::vector<Windows::Storage::Search::StorageFileQueryResult^> m_shaderQueryResult;
-
-		Platform::Collections::Vector< Platform::Object^ >^ m_cspCache;
-
-		void CacheFrameForPlayback(int frame);
 	
 	private:
 		void ProcessInput();
@@ -69,14 +84,16 @@ namespace KinectRecord
 
 		Platform::Array<byte>^ m_pixelStore;
 
-		// Cached pointer to device resources.
+		// device resources.
 		std::shared_ptr<DX::DeviceResources> m_deviceResources;
 
-		std::unique_ptr<KinectRender> m_sceneRenderer;
-		std::unique_ptr<SampleFpsTextRenderer> m_fpsTextRenderer;
-
+		// concurrency
 		Windows::Foundation::IAsyncAction^ m_renderLoopWorker;
 		Concurrency::critical_section m_criticalSection;
+
+		// renderers
+		std::unique_ptr<KinectRender> m_sceneRenderer;
+		std::unique_ptr<SampleFpsTextRenderer> m_fpsTextRenderer;
 
 		// Rendering loop timer.
 		DX::StepTimer m_timer;

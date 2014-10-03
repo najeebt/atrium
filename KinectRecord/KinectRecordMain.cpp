@@ -21,7 +21,6 @@ m_isPlayingBack(false),
 m_streamColor(false),
 m_currentFrame(1),
 m_currentTake(1),
-m_readCspCache(true),
 m_shaderFiles(3),
 m_shaderQueryResult(3),
 m_pointerLocationX(0.0f)
@@ -29,19 +28,16 @@ m_pointerLocationX(0.0f)
 	// Register to be notified if the Device is lost or recreated
 	m_deviceResources->RegisterDeviceNotify(this);
 
+	// DirectX renderer initialization
 	m_sceneRenderer = std::unique_ptr<KinectRender>(new KinectRender(m_deviceResources));
-
 	m_fpsTextRenderer = std::unique_ptr<SampleFpsTextRenderer>(new SampleFpsTextRenderer(m_deviceResources));
 
-	m_pixelStore = ref new Platform::Array<byte>(1920 * 1080 * 4);
-
+	// Kinect input/playback classes
 	m_kinectHandler = ref new KinectHandler();
-	
-	m_cspCache = ref new Platform::Collections::Vector< Platform::Object^ >();
+	m_pixelStore = ref new Platform::Array<byte>(1920 * 1080 * 4);
+	m_playbackBuffer = ref new Platform::Collections::Vector< Platform::Object^ >();
 
-	// TODO: Change the timer settings if you want something other than the default variable timestep mode.
-	// e.g. for 60 FPS fixed timestep update logic, call:
-	
+	// hold to 24 fps cause we're making films
 	m_timer.SetFixedTimeStep(true);
 	m_timer.SetTargetElapsedSeconds(1.0 / 24);
 	
@@ -56,7 +52,6 @@ KinectRecordMain::~KinectRecordMain()
 // Updates application state when the window size changes (e.g. device orientation change)
 void KinectRecordMain::CreateWindowSizeDependentResources()
 {
-	// TODO: Replace this with the size-dependent initialization of your app's content.
 	m_sceneRenderer->CreateWindowSizeDependentResources();
 }
 
@@ -127,8 +122,8 @@ void KinectRecordMain::PrepToPlayback()
 		create_task(queryResult->GetFilesAsync()).then([this](IVectorView<Windows::Storage::StorageFile^>^ files)
 		{
 			m_recordFiles = files;
-			m_cspCache = ref new Platform::Collections::Vector<Platform::Object^>(m_recordFiles->Size);
-			for (int frame = 1; frame < 100; ++frame) {
+			m_playbackBuffer = ref new Platform::Collections::Vector<Platform::Object^>(m_recordFiles->Size);
+			for (int frame = 1; frame < MAX_BUFFER_FRAMES; ++frame) {
 				// XXX - probably buffer (as in the video streaming sense) frame data here and playback at steady speed
 				if ((m_recordFiles != nullptr) && (m_recordFiles->Size > frame)) {
 					CacheFrameForPlayback(frame);
@@ -204,21 +199,6 @@ void KinectRecordMain::WriteJpegToDisk(Windows::Storage::Streams::Buffer^ colorD
 	});
 }
 
-void KinectRecordMain::PlaybackSequence(int frame)
-{
-	// XXX - probably buffer (as in the video streaming sense) frame data here and playback at steady speed
-	if ((m_recordFiles != nullptr) && (m_recordFiles->Size > frame)) {
-		StorageFile^ frameFile = m_recordFiles->GetAt(frame);
-		create_task(FileIO::ReadBufferAsync(frameFile)).then([this, frame](IBuffer^ buffer) {
-			Platform::Array<unsigned char>^ bytes = ref new Platform::Array<unsigned char>(buffer->Length);
-			CryptographicBuffer::CopyToByteArray(buffer, &bytes);
-			Platform::Array<WindowsPreview::Kinect::CameraSpacePoint>^ csps =
-				ref new Platform::Array<WindowsPreview::Kinect::CameraSpacePoint>(reinterpret_cast<WindowsPreview::Kinect::CameraSpacePoint *>(bytes->begin()), bytes->Length / 12.0);
-			m_cspCache->SetAt(frame - 1, csps);
-		}).then([this, frame]() { this->PlaybackSequence(frame + 1); });
-	}
-}
-
 void KinectRecordMain::CacheFrameForPlayback(int frame)
 {
 	StorageFile^ frameFile = m_recordFiles->GetAt(frame);
@@ -227,7 +207,7 @@ void KinectRecordMain::CacheFrameForPlayback(int frame)
 		CryptographicBuffer::CopyToByteArray(buffer, &bytes);
 		Platform::Array<WindowsPreview::Kinect::CameraSpacePoint>^ csps =
 			ref new Platform::Array<WindowsPreview::Kinect::CameraSpacePoint>(reinterpret_cast<WindowsPreview::Kinect::CameraSpacePoint *>(bytes->begin()), bytes->Length / 12.0);
-		m_cspCache->SetAt(frame - 1, csps);
+		m_playbackBuffer->SetAt(frame - 1, csps);
 	});
 }
 
@@ -332,13 +312,13 @@ void KinectRecordMain::Update()
 		}
 		// playback
 		else if (m_isPlayingBack) {
-			if (m_cspCache->Size >= m_currentFrame) {
-				Platform::Array<WindowsPreview::Kinect::CameraSpacePoint>^ csps = safe_cast<Platform::Array<WindowsPreview::Kinect::CameraSpacePoint>^>(m_cspCache->GetAt(m_currentFrame - 1));
+			if (m_playbackBuffer->Size >= m_currentFrame) {
+				Platform::Array<WindowsPreview::Kinect::CameraSpacePoint>^ csps = safe_cast<Platform::Array<WindowsPreview::Kinect::CameraSpacePoint>^>(m_playbackBuffer->GetAt(m_currentFrame - 1));
 				if (csps != nullptr) {
 					m_sceneRenderer->UpdateVertexBuffer(csps);
 					m_sceneRenderer->UpdateTime(m_currentFrame);
-					m_cspCache->SetAt(m_currentFrame - 1, nullptr);
-					CacheFrameForPlayback((m_currentFrame + 98) % (m_cspCache->Size - 1) + 1);
+					m_playbackBuffer->SetAt(m_currentFrame - 1, nullptr);
+					CacheFrameForPlayback((m_currentFrame + 98) % (m_playbackBuffer->Size - 1) + 1);
 					m_currentFrame = m_currentFrame == (m_recordFiles->Size - 1) ? 1 : m_currentFrame + 1;
 				}
 			}
@@ -371,28 +351,6 @@ bool KinectRecordMain::Render()
 		return false;
 	}
 
-//	auto context = m_deviceResources->GetD3DDeviceContext();
-//
-//	// Reset the viewport to target the whole screen.
-//	auto viewport = m_deviceResources->GetScreenViewport();
-//	context->RSSetViewports(1, &viewport);
-//
-//	// Reset render targets to the screen.
-//	ID3D11RenderTargetView *const targets[1] = { m_deviceResources->GetBackBufferRenderTargetView() };
-//	context->OMSetRenderTargets(1, targets, m_deviceResources->GetDepthStencilView());
-//
-//	// Clear the back buffer and depth stencil view.
-//	//context->ClearRenderTargetView(m_deviceResources->GetBackBufferRenderTargetView(), DirectX::Colors::Black);
-//	//context->ClearDepthStencilView(m_sceneRenderer->GetShadowDepthView(), D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
-//	//context->ClearDepthStencilView(m_deviceResources->GetDepthStencilView(), D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
-//
-//	//// Clear the back buffer and depth stencil view.
-//	/*context->ClearRenderTargetView(m_deviceResources->GetBackBufferRenderTargetView(), DirectX::Colors::Black);
-//	context->ClearDepthStencilView(m_deviceResources->GetDepthStencilView(), D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
-//*/
-//	// Render the scene objects.
-//	// TODO: Replace this with your app's content rendering functions.
-//	//m_sceneRenderer->RenderShadowMap();
 	m_sceneRenderer->Render();
 	m_fpsTextRenderer->Render();
 

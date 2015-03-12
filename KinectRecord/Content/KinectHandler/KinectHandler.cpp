@@ -23,6 +23,8 @@ colorFrameReader(),
 colorFrameSource(),
 bodyFrameReader(),
 bodyFrameSource(),
+HDFaceFrameReader(),
+HDFaceFrameSource(),
 coordinateMapper(),
 bodies(),
 hands(),
@@ -130,6 +132,70 @@ void KinectHandler::ColorReader_FrameArrived(Kinect::ColorFrameReader^ sender, K
 	return;
 }
 
+/// <summary>
+/// Returns the length of a vector from origin
+/// </summary>
+double KinectHandler::VectorLength(WindowsPreview::Kinect::CameraSpacePoint point)
+{
+	auto result = pow(point.X, 2) + pow(point.Y, 2) + pow(point.Z, 2);
+
+	result = sqrt(result);
+
+	return result;
+}
+
+/// <summary>
+/// Finds the closest body from the sensor if any
+/// </summary>
+WindowsPreview::Kinect::Body^ KinectHandler::FindClosestBody()
+{
+	WindowsPreview::Kinect::Body^ result = nullptr;
+
+	double closestBodyDistance = 10000000.0;
+
+	for (auto body : this->bodies)
+	{
+		if (body->IsTracked)
+		{
+			auto joints = body->Joints;
+
+			auto currentLocation = joints->Lookup(Kinect::JointType::SpineBase).Position;
+
+			auto currentDistance = VectorLength(currentLocation);
+
+			if (result == nullptr || currentDistance < closestBodyDistance)
+			{
+				result = body;
+				closestBodyDistance = currentDistance;
+			}
+		}
+	}
+
+	return result;
+}
+
+/// <summary>
+/// Find if there is a body tracked with the given trackingId
+/// </summary>
+WindowsPreview::Kinect::Body^ KinectHandler::FindBodyWithTrackingId(UINT64 trackingId)
+{
+	WindowsPreview::Kinect::Body^ result = nullptr;
+
+	for (auto body : this->bodies)
+	{
+		if (body->IsTracked)
+		{
+			if (body->TrackingId == trackingId)
+			{
+				result = body;
+				break;
+			}
+		}
+	}
+
+	return result;
+}
+ 
 void KinectHandler::BodyReader_FrameArrived(Kinect::BodyFrameReader^ sender, Kinect::BodyFrameArrivedEventArgs^ e)
 {
 
@@ -154,7 +220,59 @@ void KinectHandler::BodyReader_FrameArrived(Kinect::BodyFrameReader^ sender, Kin
 		}
 	}
 
+	// Do we still see the person we're tracking?
+	if (m_currentTrackedBody != nullptr)
+	{
+		m_currentTrackedBody = FindBodyWithTrackingId(m_currentTrackingId);
+
+		if (m_currentTrackedBody != nullptr)
+		{
+			// We still see the person we're tracking, make no change.
+			return;
+		}
+	}
+
+	WindowsPreview::Kinect::Body^ selectedBody = FindClosestBody();
+
+	if (selectedBody == nullptr)
+	{
+		m_currentTrackedBody = nullptr;
+		m_currentTrackingId = 0;
+
+		return;
+	}
+
+	m_currentTrackedBody = selectedBody;
+	auto trackingID = selectedBody->TrackingId;;
+	m_currentTrackingId = trackingID;
+
+	HDFaceFrameSource->TrackingId = m_currentTrackingId;
+
 	return;
+}
+
+void KinectHandler::HDFaceReader_FrameArrived(HighDefinitionFaceFrameReader^ sender, HighDefinitionFaceFrameArrivedEventArgs^ e)
+{
+	auto frameReference = e->FrameReference;
+
+	{
+		auto frame = frameReference->AcquireFrame();
+
+		// We might miss the chance to acquire the frame; it will be null if it's missed.
+		// Also ignore this frame if face tracking failed.
+		if (frame == nullptr || !frame->IsFaceTracked)
+		{
+			return;
+		}
+
+		frame->GetAndRefreshFaceAlignmentResult(currentFaceAlignment);
+		auto faceVertices = this->currentFaceModel->CalculateVerticesForAlignment(this->currentFaceAlignment);
+	}
+}
+
+Windows::Foundation::Collections::IVectorView<WindowsPreview::Kinect::CameraSpacePoint>^ KinectHandler::GetHDFacePoints()
+{
+	return currentFaceModel->CalculateVerticesForAlignment(this->currentFaceAlignment);
 }
 
 /// <summary>
@@ -171,20 +289,29 @@ void KinectHandler::InitializeDefaultSensor()
 		return;
 	}
 
-	m_kinectSensor->Open();
 
 	depthFrameSource = m_kinectSensor->DepthFrameSource;
 	depthFrameReader = depthFrameSource->OpenReader();
-	depthFrameReader->FrameArrived += ref new Windows::Foundation::TypedEventHandler<WindowsPreview::Kinect::DepthFrameReader ^, WindowsPreview::Kinect::DepthFrameArrivedEventArgs ^>(this, &KinectHandler::DepthReader_FrameArrived);
+	depthFrameReader->FrameArrived += ref new TypedEventHandler<WindowsPreview::Kinect::DepthFrameReader ^, WindowsPreview::Kinect::DepthFrameArrivedEventArgs ^>(this, &KinectHandler::DepthReader_FrameArrived);
 
-	colorFrameSource = m_kinectSensor->ColorFrameSource;
-	colorFrameReader = colorFrameSource->OpenReader();
+	//colorFrameSource = m_kinectSensor->ColorFrameSource;
+	//colorFrameReader = colorFrameSource->OpenReader();
 	//colorFrameReader->FrameArrived += ref new Windows::Foundation::TypedEventHandler<WindowsPreview::Kinect::ColorFrameReader ^, WindowsPreview::Kinect::ColorFrameArrivedEventArgs ^>(this, &KinectHandler::ColorReader_FrameArrived);
 
-	bodyFrameSource = m_kinectSensor->BodyFrameSource;
-	bodies = ref new Platform::Collections::Vector<WindowsPreview::Kinect::Body^>(bodyFrameSource->BodyCount);
-	bodyFrameReader = bodyFrameSource->OpenReader();
-	//bodyFrameReader->FrameArrived += ref new Windows::Foundation::TypedEventHandler<WindowsPreview::Kinect::BodyFrameReader ^, WindowsPreview::Kinect::BodyFrameArrivedEventArgs ^>(this, &KinectHandler::BodyReader_FrameArrived);
+	//bodyFrameSource = m_kinectSensor->BodyFrameSource;
+	//bodies = ref new Platform::Collections::Vector<WindowsPreview::Kinect::Body^>(bodyFrameSource->BodyCount);
+	//bodyFrameReader = bodyFrameSource->OpenReader();
+	//bodyFrameReader->FrameArrived += ref new TypedEventHandler<WindowsPreview::Kinect::BodyFrameReader ^, WindowsPreview::Kinect::BodyFrameArrivedEventArgs ^>(this, &KinectHandler::BodyReader_FrameArrived);
+
+	//HDFaceFrameSource = ref new HighDefinitionFaceFrameSource(m_kinectSensor);
+	//HDFaceFrameReader = HDFaceFrameSource->OpenReader();
+	//HDFaceFrameReader->FrameArrived += ref new TypedEventHandler<HighDefinitionFaceFrameReader^, HighDefinitionFaceFrameArrivedEventArgs^>(this, &KinectHandler::HDFaceReader_FrameArrived);
+
+	currentFaceModel = ref new FaceModel();
+	currentFaceAlignment = ref new FaceAlignment();
+	cachedFaceIndices = FaceModel::TriangleIndices;
 
 	coordinateMapper = m_kinectSensor->CoordinateMapper;
+
+	m_kinectSensor->Open();
 }

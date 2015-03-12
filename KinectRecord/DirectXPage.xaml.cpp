@@ -27,8 +27,6 @@ using namespace Windows::Storage;
 using namespace Windows::Storage::Search;
 using namespace concurrency;
 
-//namespace Kinect = WindowsPreview::Kinect;
-
 
 DirectXPage::DirectXPage():
 	m_windowVisible(true),
@@ -279,7 +277,7 @@ void KinectRecord::DirectXPage::PickAFileButton_Click(Object^ sender, RoutedEven
 			// create session folder - name by time
 			Windows::Globalization::Calendar^ c = ref new Windows::Globalization::Calendar;
 			c->SetToNow();
-			Platform::String^ dateTime = L"CAMCORDER_" + c->YearAsString() + L"_" + c->MonthAsPaddedNumericString(1) + L"_" + c->DayAsPaddedString(1) + L"_" + c->HourAsPaddedString(1) + L"_" + c->MinuteAsPaddedString(1);
+			Platform::String^ dateTime = L"ATRIUM_" + c->YearAsString() + L"_" + c->MonthAsPaddedNumericString(1) + L"_" + c->DayAsPaddedString(1) + L"_" + c->HourAsPaddedString(1) + L"_" + c->MinuteAsPaddedString(1);
 			create_task(folder->CreateFolderAsync(dateTime)).then([this](Windows::Storage::StorageFolder^ sessionFolder)
 			{
 				m_main->m_sessionFolder = sessionFolder;
@@ -354,7 +352,6 @@ void KinectRecord::DirectXPage::Button_Click_2(Platform::Object^ sender, Windows
 		if (folder)
 		{
 			m_main->m_exportFromFolder = folder;
-			m_main->ExportTakeToObj();
 		}
 	});
 }
@@ -451,6 +448,23 @@ void KinectRecord::DirectXPage::Button_Click_5(Platform::Object^ sender, Windows
 		if (file)
 		{
 			SetShaderFile(file, 1);
+		}
+	});
+}
+
+void KinectRecord::DirectXPage::Button_Click_6(Platform::Object^ sender, Windows::UI::Xaml::RoutedEventArgs^ e)
+{
+	FolderPicker^ openPicker = ref new FolderPicker();
+	openPicker->ViewMode = PickerViewMode::Thumbnail;
+	openPicker->SuggestedStartLocation = PickerLocationId::DocumentsLibrary;
+	openPicker->FileTypeFilter->Append(".adv");
+
+	create_task(openPicker->PickSingleFolderAsync()).then([this](Windows::Storage::StorageFolder^ folder)
+	{
+		if (folder)
+		{
+			m_main->m_exportToFolder = folder;
+			m_main->ExportTakeToObj();
 		}
 	});
 }

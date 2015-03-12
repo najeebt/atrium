@@ -42,6 +42,7 @@ GeometryShaderInput main(VertexShaderInput input)
 {
 	GeometryShaderInput output;
 	float4 pos = input.pos;
+	//pos = (input.pos + input.pos2 + input.pos3) / 3.0;
 
 	// Transform the vertex position into projected space.
 	float4 modelPos = mul(pos, model);

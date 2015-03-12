@@ -31,7 +31,7 @@
     </Page.Resources>
 
     <SwapChainPanel x:Name="swapChainPanel" HorizontalAlignment="Right">
-        <StackPanel Margin="10,101,1157,127" Orientation="Vertical">
+        <StackPanel Margin="10,101,1157,75" Orientation="Vertical">
             <TextBlock Text="ATRIUM"
         		HorizontalAlignment="Left"
         		VerticalAlignment="Top"
@@ -42,7 +42,8 @@
             <TextBlock x:Name="TakeDisplay" Margin="0,0,0,20" TextWrapping="Wrap" Text="&lt;none&gt;"/>
             <Button x:Name="RecordButton" Foreground="Red" Content="RECORD" HorizontalAlignment="Left" VerticalAlignment="Top" Click="Record"/>
             <Button x:Name="PlaybackButton" Content="REPLAY" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Margin="0,0,107,0" Click="Button_Click_1"/>
-            <Button Content="EXPORT" HorizontalAlignment="Stretch"  VerticalAlignment="Stretch" Margin="0,0,107,40" Click="Button_Click_2"/>
+            <Button Content="EXPORT FROM" HorizontalAlignment="Stretch"  VerticalAlignment="Stretch" Margin="0,0,72,0" Click="Button_Click_2"/>
+            <Button Content="EXPORT TO" HorizontalAlignment="Stretch"  VerticalAlignment="Stretch" Margin="0,0,72,40" RenderTransformOrigin="0.443,-5.579" Click="Button_Click_6"/>
             <CheckBox Content="Depth" HorizontalAlignment="Left" IsChecked="True" IsEnabled="False" VerticalAlignment="Top"/>
             <CheckBox x:Name="ColorCheckBox" Content="Color" HorizontalAlignment="Left" VerticalAlignment="Top" Click="CheckBox_Checked"/>
             <Button Content="Pixel Shader" HorizontalAlignment="Left" Margin="0,20,0,0" VerticalAlignment="Top" Click="Button_Click_3"/>

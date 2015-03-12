@@ -31,7 +31,7 @@
     </Page.Resources>
 
     <SwapChainPanel x:Name="swapChainPanel" HorizontalAlignment="Right">
-        <StackPanel Margin="10,101,1157,127" Orientation="Vertical">
+        <StackPanel Margin="10,101,1157,75" Orientation="Vertical">
             <TextBlock x:ConnectionId='3' Text="ATRIUM"
         		HorizontalAlignment="Left"
         		VerticalAlignment="Top"
@@ -42,12 +42,13 @@
             <TextBlock x:Name="TakeDisplay" Margin="0,0,0,20" TextWrapping="Wrap" Text="&lt;none&gt;"/>
             <Button x:ConnectionId='7' x:Name="RecordButton" Foreground="Red" Content="RECORD" HorizontalAlignment="Left" VerticalAlignment="Top"               />
             <Button x:ConnectionId='8' x:Name="PlaybackButton" Content="REPLAY" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Margin="0,0,107,0"                       />
-            <Button x:ConnectionId='9' Content="EXPORT" HorizontalAlignment="Stretch"  VerticalAlignment="Stretch" Margin="0,0,107,40"                       />
+            <Button x:ConnectionId='9' Content="EXPORT FROM" HorizontalAlignment="Stretch"  VerticalAlignment="Stretch" Margin="0,0,72,0"                       />
+            <Button x:ConnectionId='10' Content="EXPORT TO" HorizontalAlignment="Stretch"  VerticalAlignment="Stretch" Margin="0,0,72,40" RenderTransformOrigin="0.443,-5.579"                       />
             <CheckBox Content="Depth" HorizontalAlignment="Left" IsChecked="True" IsEnabled="False" VerticalAlignment="Top"/>
-            <CheckBox x:ConnectionId='10' x:Name="ColorCheckBox" Content="Color" HorizontalAlignment="Left" VerticalAlignment="Top"                         />
-            <Button x:ConnectionId='11' Content="Pixel Shader" HorizontalAlignment="Left" Margin="0,20,0,0" VerticalAlignment="Top"                       />
-            <Button x:ConnectionId='12' Content="Vertex Shader" HorizontalAlignment="Left" Margin="0,0,0,0" VerticalAlignment="Top"                       />
-            <Button x:ConnectionId='13' Content="Geometry Shader" HorizontalAlignment="Left" Margin="0,0,0,0" VerticalAlignment="Top"                       />
+            <CheckBox x:ConnectionId='11' x:Name="ColorCheckBox" Content="Color" HorizontalAlignment="Left" VerticalAlignment="Top"                         />
+            <Button x:ConnectionId='12' Content="Pixel Shader" HorizontalAlignment="Left" Margin="0,20,0,0" VerticalAlignment="Top"                       />
+            <Button x:ConnectionId='13' Content="Vertex Shader" HorizontalAlignment="Left" Margin="0,0,0,0" VerticalAlignment="Top"                       />
+            <Button x:ConnectionId='14' Content="Geometry Shader" HorizontalAlignment="Left" Margin="0,0,0,0" VerticalAlignment="Top"                       />
         </StackPanel>
         <TextBlock x:ConnectionId='1' x:Name="RecIndicator" Visibility="Collapsed" HorizontalAlignment="Left" Margin="284,101,0,0" TextWrapping="Wrap" Text="REC" VerticalAlignment="Top" Height="48" Width="165"                                                 Style="{StaticResource REC_STYLE}"/>
         <Slider x:ConnectionId='2' x:Name="TimeSlider" Visibility="Collapsed" HorizontalAlignment="Left" Minimum="1" Margin="60,708,0,0" VerticalAlignment="Top" Width="1213"                                   />
@@ -56,7 +57,7 @@
     <Page.BottomAppBar>
         <AppBar x:Name="bottomAppBar" Padding="10,0,10,0">
             <StackPanel Orientation="Horizontal" HorizontalAlignment="Left">
-                <AppBarButton x:ConnectionId='14' AutomationProperties.Name="Sample Button"
+                <AppBarButton x:ConnectionId='15' AutomationProperties.Name="Sample Button"
                       AutomationProperties.AutomationId="SampleAppBarButton"
                                                 />
             </StackPanel>

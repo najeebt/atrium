@@ -28,8 +28,8 @@ void main(
 		GSOutput element;
 		element.pos = input[0].pos;
 		float3 n1 = normalize(cross(input[0].pos.xyz - input[1].pos.xyz, input[0].pos.xyz - input[2].pos.xyz));
-			float3 n2 = normalize(cross(input[0].pos.xyz - input[4].pos.xyz, input[0].pos.xyz - input[5].pos.xyz));
-			element.normal = (n1 + n2) / 2.0;
+		float3 n2 = normalize(cross(input[0].pos.xyz - input[4].pos.xyz, input[0].pos.xyz - input[5].pos.xyz));
+		element.normal = (n1 + n2) / 2.0;
 		element.rpos = input[0].pos.xyz;
 		element.color = input[0].color;
 		element.lightSpacePos = input[0].lightSpacePos;

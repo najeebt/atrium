@@ -4,6 +4,8 @@
 
 #include "..\Common\DirectXHelper.h"
 
+#define FRAME_LAG 3
+
 using namespace KinectRecord;
 
 using namespace DirectX;
@@ -24,7 +26,7 @@ KinectRender::KinectRender(const std::shared_ptr<DX::DeviceResources>& deviceRes
 	m_vertexBufferData(3),
 	m_vertexBuffer(3),
 	m_cam(),
-	m_shadowMapDimension(2048.f),
+	m_shadowMapDimension(4096.f),
 	m_deviceResources(deviceResources)
 {
 	CreateDeviceDependentResources();
@@ -50,7 +52,7 @@ void KinectRender::CreateWindowSizeDependentResources()
 	XMStoreFloat4x4(
 		&m_constantBufferData.projection,
 		XMLoadFloat4x4(&m_cam.Proj()));
-
+	
 	// Eye is at (0,0.7,1.5), looking at point (0,-0.1,0) with the up-vector along the y-axis.
 	static const XMFLOAT3 eye = { 0.0f, 0.0f, 0.0f };
 	static const XMFLOAT3 at = { 0.0f, -0.0f, 8.0f };
@@ -67,9 +69,9 @@ void KinectRender::CreateWindowSizeDependentResources()
 	XMStoreFloat(&m_sceneConstantBufferData.time, XMLoadFloat(&m_time));
 
 	WindowsPreview::Kinect::CameraSpacePoint p;
-	p.X = -5.0;
-	p.Y = 2.0;
-	p.Z = -3.0;
+	p.X = -0.0;
+	p.Y = 3.0;
+	p.Z = -0.0;
 	UpdateLightPositions(p);
 }
 
@@ -119,13 +121,15 @@ void KinectRender::UpdateVertexBuffer(Platform::Array<WindowsPreview::Kinect::Ca
 
 	if (m_vertexBufferData[0].size() == cameraSpacePoints->Length) {
 
-		//m_vertexBufferData[2] = m_vertexBufferData[1];
-		//m_vertexBufferData[1] = m_vertexBufferData[0];
+		for (int i = 0; i < (FRAME_LAG - 1); ++i) {
+			m_vertexBufferData[i + 1] = m_vertexBufferData[i];
+		}
+
 		m_vertexBufferData[0].assign(reinterpret_cast<VertexPosition *>(cameraSpacePoints->begin()), reinterpret_cast<VertexPosition *>(cameraSpacePoints->end()));
 
 		D3D11_BOX box{};
 
-		for (int i = 0; i < 1; i++) {
+		for (int i = 0; i < FRAME_LAG; i++) {
 			box.left = 0;
 			box.right = m_vertexBufferData[i].size()*sizeof(VertexPosition);
 			box.top = 0;
@@ -508,7 +512,7 @@ void KinectRender::CreateDeviceDependentResources()
 	// Load shaders asynchronously.
 	auto loadGSTask = DX::ReadDataAsync(L"DefaultGeometryShader.cso");
 	auto loadVSTask = DX::ReadDataAsync(L"BaseVertexShader.cso");
-	auto loadPSTask = DX::ReadDataAsync(L"KeyLightPixelShader.cso");
+	auto loadPSTask = DX::ReadDataAsync(L"RainbowDepthPixelShader.cso");
 	auto loadShadowVSTask = DX::ReadDataAsync(L"ShadowVertexShader.cso");
 	auto loadShadowGSTask = DX::ReadDataAsync(L"ShadowGeometryShader.cso");
 
@@ -539,8 +543,6 @@ void KinectRender::CreateDeviceDependentResources()
 		{
 			{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 },
 			{ "COLOR", 0, DXGI_FORMAT_R32G32B32_FLOAT, 1, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 },
-			//{ "POSITION", 1, DXGI_FORMAT_R32G32B32_FLOAT, 2, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 },
-			//{ "POSITION", 2, DXGI_FORMAT_R32G32B32_FLOAT, 3, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 },
 		};
 
 		DX::ThrowIfFailed(
@@ -633,8 +635,8 @@ void KinectRender::CreateDeviceDependentResources()
 			}
 		}
 
-		//m_vertexBufferData[1] = m_vertexBufferData[0];
-		//m_vertexBufferData[2] = m_vertexBufferData[1];
+		m_vertexBufferData[1] = m_vertexBufferData[0];
+		m_vertexBufferData[2] = m_vertexBufferData[1];
 
 		// vertex position buffer
 		D3D11_SUBRESOURCE_DATA vertexBufferData = { 0 };
@@ -643,7 +645,7 @@ void KinectRender::CreateDeviceDependentResources()
 		vertexBufferData.SysMemSlicePitch = 0;
 		CD3D11_BUFFER_DESC vertexBufferDesc(m_vertexBufferData[0].size()*sizeof(VertexPosition), D3D11_BIND_VERTEX_BUFFER);
 
-		for (int i = 0; i < 1; ++i) {
+		for (int i = 0; i < FRAME_LAG; ++i) {
 			DX::ThrowIfFailed(
 				m_deviceResources->GetD3DDevice()->CreateBuffer(
 				&vertexBufferDesc,
@@ -1029,7 +1031,9 @@ void KinectRender::ReleaseDeviceDependentResources()
 	m_pixelShader.Reset();
 	m_constantBuffer.Reset();
 	m_sceneConstantBuffer.Reset();
-	m_vertexBuffer[0].Reset();
+	for (int i = 0; i < FRAME_LAG; i++) {
+		m_vertexBuffer[i].Reset();
+	}
 	m_colorBuffer.Reset();
 	m_indexBuffer.Reset();
 

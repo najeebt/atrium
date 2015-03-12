@@ -14,7 +14,7 @@ void main(
 	inout TriangleStream< GSOutput > output
 	)
 {
-	if (length(input[0].pos - input[2].pos) < 0.3 && length(input[4].pos - input[0].pos) < 0.3) {
+	if (length(cross(input[0].pos - input[2].pos, input[4].pos - input[0].pos)) < 0.0001) {
 		GSOutput element;
 		element.pos = input[0].pos;
 		output.Append(element);

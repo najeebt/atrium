@@ -9,6 +9,7 @@
 
 namespace Kinect = WindowsPreview::Kinect;
 using namespace Windows::Foundation;
+using namespace Microsoft::Kinect::Face;
 
 // Safe release for interfaces
 template<class Interface>
@@ -35,6 +36,7 @@ public:
 	bool HasUnreadColorData() { return colorUnread; }
 	bool HasUnreadHandData() { return handUnread; }
 	int GetNFrames() { return nFrames; }
+	Windows::Foundation::Collections::IVectorView<WindowsPreview::Kinect::CameraSpacePoint>^ GetHDFacePoints();
 
 private:
 
@@ -66,6 +68,35 @@ private:
 	WindowsPreview::Kinect::BodyFrameSource^ bodyFrameSource;
 	WindowsPreview::Kinect::BodyFrameReader^ bodyFrameReader;
 
+	Microsoft::Kinect::Face::HighDefinitionFaceFrameSource^ HDFaceFrameSource;
+	Microsoft::Kinect::Face::HighDefinitionFaceFrameReader^ HDFaceFrameReader;
+
+	/// <summary>
+	/// FaceAlignment is the result of tracking a face, it has face animations location and orientation
+	/// </summary>
+	FaceAlignment^ currentFaceAlignment;
+
+	/// <summary>
+	/// FaceModel is a result of capturing a face
+	/// </summary>
+	FaceModel^ currentFaceModel;
+
+	/// <summary>
+	/// Indices don't change, save them one time is enough
+	/// </summary>
+	Windows::Foundation::Collections::IVectorView<UINT>^ cachedFaceIndices;
+
+	/// <summary>
+	/// The currently tracked body
+	/// </summary>
+	WindowsPreview::Kinect::Body^ m_currentTrackedBody;
+
+	/// <summary>
+	/// The currently tracked body Id
+	/// </summary>
+	UINT64 m_currentTrackingId;
+
+	
 	// Coordinate mapper
 	WindowsPreview::Kinect::CoordinateMapper^	coordinateMapper;
 
@@ -80,8 +111,13 @@ private:
 	Platform::Collections::Vector<WindowsPreview::Kinect::Body ^>^ bodies;
 	Platform::Array<WindowsPreview::Kinect::CameraSpacePoint>^ hands;
 
-	void KinectHandler::DepthReader_FrameArrived(WindowsPreview::Kinect::DepthFrameReader^ sender, WindowsPreview::Kinect::DepthFrameArrivedEventArgs^ e);
-	void KinectHandler::ColorReader_FrameArrived(WindowsPreview::Kinect::ColorFrameReader^ sender, WindowsPreview::Kinect::ColorFrameArrivedEventArgs^ e);
-	void KinectHandler::BodyReader_FrameArrived(WindowsPreview::Kinect::BodyFrameReader^ sender, WindowsPreview::Kinect::BodyFrameArrivedEventArgs^ e);
+	void DepthReader_FrameArrived(WindowsPreview::Kinect::DepthFrameReader^ sender, WindowsPreview::Kinect::DepthFrameArrivedEventArgs^ e);
+	void ColorReader_FrameArrived(WindowsPreview::Kinect::ColorFrameReader^ sender, WindowsPreview::Kinect::ColorFrameArrivedEventArgs^ e);
+	void BodyReader_FrameArrived(WindowsPreview::Kinect::BodyFrameReader^ sender, WindowsPreview::Kinect::BodyFrameArrivedEventArgs^ e);
+	void HDFaceReader_FrameArrived(HighDefinitionFaceFrameReader^ sender, HighDefinitionFaceFrameArrivedEventArgs^ e);
+
+	WindowsPreview::Kinect::Body^ KinectHandler::FindBodyWithTrackingId(UINT64 trackingId);
+	WindowsPreview::Kinect::Body^ KinectHandler::FindClosestBody();
+	double KinectHandler::VectorLength(WindowsPreview::Kinect::CameraSpacePoint point);
 };
 

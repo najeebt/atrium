@@ -10,8 +10,8 @@ cbuffer ModelViewProjectionConstantBuffer : register(b0)
 struct VertexShaderInput
 {
 	float4 pos : POSITION0;
+	float3 color : COLOR0;
 };
-
 // Per-pixel color data passed through the pixel shader.
 struct GeometryShaderInput
 {

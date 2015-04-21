@@ -7,6 +7,8 @@
 #define DEPTH_PIXEL_COUNT 512*424
 #define COLOR_PIXEL_COUNT 1920*1080
 
+#define HANDLER_BUFFER 30
+
 namespace Kinect = WindowsPreview::Kinect;
 using namespace Windows::Foundation;
 using namespace Microsoft::Kinect::Face;
@@ -56,6 +58,11 @@ private:
 	FILE*					DepthOutFile;
 	FILE*					UVOutFile;
 
+	int nextDFrameToRead;
+	int nextCFrameToRead;
+	int nCFrames;
+	int nDFrames;
+
 	// Current Kinect
 	WindowsPreview::Kinect::KinectSensor^ m_kinectSensor;
 
@@ -96,7 +103,6 @@ private:
 	/// </summary>
 	UINT64 m_currentTrackingId;
 
-	
 	// Coordinate mapper
 	WindowsPreview::Kinect::CoordinateMapper^	coordinateMapper;
 
@@ -108,6 +114,10 @@ private:
 	Platform::Array<uint16>^ m_depthData;
 	Windows::Storage::Streams::Buffer^ m_colorBuffer;
 
+	// holding onto data until it's written
+	Platform::Collections::Vector< Platform::Object^ >^ m_depthDataCache;
+	Platform::Collections::Vector< Platform::Object^ >^ m_colorBufferCache;
+	
 	Platform::Collections::Vector<WindowsPreview::Kinect::Body ^>^ bodies;
 	Platform::Array<WindowsPreview::Kinect::CameraSpacePoint>^ hands;
 

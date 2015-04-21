@@ -63,6 +63,10 @@ namespace KinectRecord
 		Platform::Collections::Vector< Platform::Object^ >^ m_playbackBuffer;
 		Platform::Collections::Vector< Platform::Object^ >^ m_saveToDiskBuffer;
 
+		//// holding onto data until it's written
+		Platform::Collections::Vector< Platform::Object^ >^ m_depthDataCache;
+		Platform::Collections::Vector< Platform::Object^ >^ m_colorBufferCache;
+
 		// winrt file management
 		Collections::IVectorView<Windows::Storage::StorageFile^>^ m_recordFiles;
 		Collections::IVectorView<Windows::Storage::StorageFile^>^ m_exportFiles;

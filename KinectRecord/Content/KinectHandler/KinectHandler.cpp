@@ -68,22 +68,34 @@ KinectHandler::~KinectHandler()
 	}
 }
 
-Windows::Storage::Streams::Buffer^ KinectHandler::GetColorData()
+Windows::Storage::Streams::Buffer^ KinectHandler::GetCurrentColorData()
 {
 	colorUnread = false;
-	//Windows::Storage::Streams::Buffer^ ret = safe_cast<Windows::Storage::Streams::Buffer^>(m_colorBufferCache->GetAt(nextCFrameToRead));
-	//nextCFrameToRead++;
-	//nextCFrameToRead %= HANDLER_BUFFER;
 	return m_colorBuffer;
 }
 
-Platform::Array<WindowsPreview::Kinect::CameraSpacePoint>^ KinectHandler::Get3DData()
+Platform::Array<WindowsPreview::Kinect::CameraSpacePoint>^ KinectHandler::GetCurrentDepthData()
 {
 	depthUnread = false;
-	//Platform::Array<WindowsPreview::Kinect::CameraSpacePoint>^ ret = safe_cast<Platform::Array<WindowsPreview::Kinect::CameraSpacePoint>^>(m_depthDataCache->GetAt(nextDFrameToRead));
-	//nextDFrameToRead++;
-	//nextDFrameToRead %= HANDLER_BUFFER;
 	return m_cameraSpacePoints;
+}
+
+Platform::Array<WindowsPreview::Kinect::CameraSpacePoint>^ KinectHandler::GetBufferedDepthData()
+{
+	depthUnread = false;
+	Platform::Array<WindowsPreview::Kinect::CameraSpacePoint>^ ret = safe_cast<Platform::Array<WindowsPreview::Kinect::CameraSpacePoint>^>(m_depthDataCache->GetAt(nextDFrameToRead));
+	nextDFrameToRead++;
+	nextDFrameToRead %= HANDLER_BUFFER;
+	return ret;
+}
+
+Windows::Storage::Streams::Buffer^ KinectHandler::GetBufferedColorData()
+{
+	colorUnread = false;
+	Windows::Storage::Streams::Buffer^ ret = safe_cast<Windows::Storage::Streams::Buffer^>(m_colorBufferCache->GetAt(nextCFrameToRead));
+	nextCFrameToRead++;
+	nextCFrameToRead %= HANDLER_BUFFER;
+	return ret;
 }
 
 Platform::Array<WindowsPreview::Kinect::ColorSpacePoint>^ KinectHandler::GetUVData()
@@ -112,13 +124,13 @@ void KinectHandler::DepthReader_FrameArrived(Kinect::DepthFrameReader^ sender, K
 		auto nDepthMaxReliableDistance = pDepthFrame->DepthMaxReliableDistance;
 
 		// Copy depth data
-		//Platform::Array<WindowsPreview::Kinect::CameraSpacePoint>^ csps = ref new Platform::Array<WindowsPreview::Kinect::CameraSpacePoint>(DEPTH_PIXEL_COUNT);
+		Platform::Array<WindowsPreview::Kinect::CameraSpacePoint>^ csps = ref new Platform::Array<WindowsPreview::Kinect::CameraSpacePoint>(DEPTH_PIXEL_COUNT);
 		pDepthFrame->CopyFrameDataToArray(m_depthData);
-		coordinateMapper->MapDepthFrameToCameraSpace(m_depthData, m_cameraSpacePoints);
+		coordinateMapper->MapDepthFrameToCameraSpace(m_depthData, csps);
 		//coordinateMapper->MapDepthPointsToColorSpace(depthSpacePoints, m_depthData, m_colorSpacePoints);
 
-		
-		//m_depthDataCache->SetAt(nDFrames % HANDLER_BUFFER, csps);
+		m_cameraSpacePoints = csps;
+		m_depthDataCache->SetAt(nDFrames % HANDLER_BUFFER, csps);
 		nDFrames++;
 		depthUnread = true;
 	}
@@ -140,10 +152,11 @@ void KinectHandler::ColorReader_FrameArrived(Kinect::ColorFrameReader^ sender, K
 		auto nColorHeight = pColorFrameDescription->Height;
 		auto imageFormat = pColorFrame->RawColorImageFormat;
 
-		//Windows::Storage::Streams::Buffer^ colorBuffer = ref new Windows::Storage::Streams::Buffer(1920 * 1080 * sizeof(unsigned char) * 4);;
-		pColorFrame->CopyConvertedFrameDataToBuffer(m_colorBuffer, WindowsPreview::Kinect::ColorImageFormat::Rgba);
+		Windows::Storage::Streams::Buffer^ colorBuffer = ref new Windows::Storage::Streams::Buffer(1920 * 1080 * sizeof(unsigned char) * 4);;
+		pColorFrame->CopyConvertedFrameDataToBuffer(colorBuffer, WindowsPreview::Kinect::ColorImageFormat::Rgba);
 
-		//m_colorBufferCache->SetAt(nCFrames % HANDLER_BUFFER, colorBuffer);
+		m_colorBuffer = colorBuffer;
+		m_colorBufferCache->SetAt(nCFrames % HANDLER_BUFFER, colorBuffer);
 
 		colorUnread = true;
 		nCFrames++;

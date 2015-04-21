@@ -30,9 +30,11 @@ public:
 	KinectHandler();
 
 	void	KinectHandler::InitializeDefaultSensor();
-	Platform::Array<WindowsPreview::Kinect::CameraSpacePoint>^ Get3DData();
+	Platform::Array<WindowsPreview::Kinect::CameraSpacePoint>^ GetCurrentDepthData();
+	Windows::Storage::Streams::Buffer^ GetCurrentColorData();
 	Platform::Array<WindowsPreview::Kinect::ColorSpacePoint>^ GetUVData();
-	Windows::Storage::Streams::Buffer^ GetColorData();
+	Platform::Array<WindowsPreview::Kinect::CameraSpacePoint>^ GetBufferedDepthData();
+	Windows::Storage::Streams::Buffer^ GetBufferedColorData();
 	Platform::Array<WindowsPreview::Kinect::CameraSpacePoint>^ GetHands() { handUnread = false; return hands; }
 	bool HasUnreadDepthData() { return depthUnread; }
 	bool HasUnreadColorData() { return colorUnread; }

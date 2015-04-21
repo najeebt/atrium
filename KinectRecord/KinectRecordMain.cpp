@@ -39,9 +39,9 @@ m_pointerLocationX(0.0f)
 	m_depthDataCache = ref new Platform::Collections::Vector<Platform::Object^>(500);
 	m_colorBufferCache = ref new Platform::Collections::Vector<Platform::Object^>(500);
 
-	// hold to 24 fps cause we're making films
+	// 60 fps to make sure we're getting all the data
 	m_timer.SetFixedTimeStep(true);
-	m_timer.SetTargetElapsedSeconds(1.0 / 24);
+	m_timer.SetTargetElapsedSeconds(1.0 / 60);
 	
 }
 
@@ -200,7 +200,7 @@ void KinectRecordMain::WriteJpegToDisk(Windows::Storage::Streams::Buffer^ colorD
 	DataReader^ reader = DataReader::FromBuffer(colorData);
 	auto pixelStore = ref new Platform::Array<byte>(1920 * 1080 * 4);
 	reader->ReadBytes(pixelStore);
-	m_colorBufferCache->SetAt(frame, pixelStore);
+ 	m_colorBufferCache->SetAt(frame, pixelStore);
 
 	auto createFileTask = create_task(m_takeFolder->CreateFileAsync(fNameForWin));
 
@@ -324,13 +324,13 @@ void KinectRecordMain::Update()
 		if (m_kinectHandler->HasUnreadDepthData() && !m_isPlayingBack && !m_isRecording && !m_isExporting) {
 
 			// DirectX rendering
-			m_sceneRenderer->UpdateVertexBuffer(m_kinectHandler->Get3DData());
+			m_sceneRenderer->UpdateVertexBuffer(m_kinectHandler->GetCurrentDepthData());
 			if (m_kinectHandler->HasUnreadHandData()) {
 				m_sceneRenderer->UpdateLightPositions(m_kinectHandler->GetHands()->get(0));
 			}
 			m_sceneRenderer->UpdateTime(-1);
 			if (m_streamColor && m_kinectHandler->HasUnreadColorData()) {
-				m_sceneRenderer->UpdateColorBuffer(m_kinectHandler->GetColorData(), m_kinectHandler->GetUVData());
+				m_sceneRenderer->UpdateColorBuffer(m_kinectHandler->GetCurrentColorData(), m_kinectHandler->GetUVData());
 			}
 
 			// advance to the next frame
@@ -340,12 +340,12 @@ void KinectRecordMain::Update()
 		else if ((m_kinectHandler->HasUnreadDepthData() || (m_streamColor && m_kinectHandler->HasUnreadColorData())) && m_isRecording) {
 			
 			if (m_kinectHandler->HasUnreadDepthData()) {
-				WriteFrameToDisk(m_kinectHandler->Get3DData());
+				WriteFrameToDisk(m_kinectHandler->GetBufferedDepthData());
 			}
 
 			if (m_streamColor && m_kinectHandler->HasUnreadColorData()) {
 				//WriteUVToDisk(m_kinectHandler->GetUVData());
-				WriteJpegToDisk(m_kinectHandler->GetColorData());
+				WriteJpegToDisk(m_kinectHandler->GetBufferedColorData());
 			}
 
 			// advance to the next frame

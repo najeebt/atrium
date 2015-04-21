@@ -126,7 +126,6 @@ void KinectRecordMain::PrepToPlayback()
 			m_recordFiles = files;
 			m_playbackBuffer = ref new Platform::Collections::Vector<Platform::Object^>(m_recordFiles->Size);
 			for (int frame = 1; frame < MAX_BUFFER_FRAMES; ++frame) {
-				// XXX - probably buffer (as in the video streaming sense) frame data here and playback at steady speed
 				if ((m_recordFiles != nullptr) && (m_recordFiles->Size > frame)) {
 					CacheFrameForPlayback(frame);
 				}
@@ -161,9 +160,6 @@ void KinectRecordMain::WriteFrameToDisk(const Platform::Array<WindowsPreview::Ki
 
 		createFileTask.then([this, frame](Windows::Storage::StorageFile^ file)
 		{
-			//Platform::Array<WindowsPreview::Kinect::CameraSpacePoint>^ csp = m_depthDataCache->
-			//std::vector<byte> bytesV(reinterpret_cast<byte*>(cameraSpacePoints->begin()), reinterpret_cast<byte*>(cameraSpacePoints->end()));
-			//Platform::Array<byte>^ bytes = ref new Platform::Array<byte>(&bytesV[0], bytesV.size());
 			Windows::Storage::FileIO::WriteBytesAsync(file, safe_cast<Platform::Array<byte>^>(m_depthDataCache->GetAt(frame)));
 			m_depthDataCache->SetAt(frame, nullptr);
 		});

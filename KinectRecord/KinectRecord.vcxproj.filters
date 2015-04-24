@@ -83,8 +83,6 @@
     <ClCompile Include="Content\Rendering\ShaderCompiler\ShaderCompiler.cpp">
       <Filter>Rendering\Shaders</Filter>
     </ClCompile>
-    <ClCompile Include="ColorFrameCache.cpp" />
-    <ClCompile Include="DepthFrameCache.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="App.xaml.h" />
@@ -113,8 +111,6 @@
     <ClInclude Include="Content\Rendering\ShaderCompiler\ShaderCompiler.h">
       <Filter>Rendering\Shaders</Filter>
     </ClInclude>
-    <ClInclude Include="ColorFrameCache.h" />
-    <ClInclude Include="DepthFrameCache.h" />
   </ItemGroup>
   <ItemGroup>
     <AppxManifest Include="Package.appxmanifest" />

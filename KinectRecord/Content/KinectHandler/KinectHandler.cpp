@@ -44,8 +44,8 @@ nCFrames(0)
 
 	m_colorBuffer = ref new Windows::Storage::Streams::Buffer(1920 * 1080 * sizeof(unsigned char) * 4);
 
-	m_cspCache = ref new Platform::Collections::Vector<DepthFrameCache^>(HANDLER_BUFFER);
-	m_colorBufferCache = ref new Platform::Collections::Vector<ColorFrameCache^>(HANDLER_BUFFER);
+	m_cspCache = ref new Platform::Collections::Vector<Platform::Object^>(HANDLER_BUFFER);
+	m_colorBufferCache = ref new Platform::Collections::Vector<Platform::Object^>(HANDLER_BUFFER);
 	m_depthDataCache = ref new Platform::Collections::Vector<Platform::Object^>(HANDLER_BUFFER);
 
 	hands = ref new Platform::Array<WindowsPreview::Kinect::CameraSpacePoint>(2);
@@ -81,19 +81,19 @@ Platform::Array<WindowsPreview::Kinect::CameraSpacePoint>^ KinectHandler::GetCur
 	return m_cameraSpacePoints;
 }
 
-DepthFrameCache^ KinectHandler::GetBufferedDepthData()
+Platform::Array<WindowsPreview::Kinect::CameraSpacePoint>^ KinectHandler::GetBufferedDepthData()
 {
 	depthUnread = false;
-	DepthFrameCache^ ret = m_cspCache->GetAt(nextDFrameToRead);
+	Platform::Array<WindowsPreview::Kinect::CameraSpacePoint>^ ret = safe_cast<Platform::Array<WindowsPreview::Kinect::CameraSpacePoint>^>(m_cspCache->GetAt(nextDFrameToRead));
 	nextDFrameToRead++;
 	nextDFrameToRead %= HANDLER_BUFFER;
 	return ret;
 }
 
-ColorFrameCache^ KinectHandler::GetBufferedColorData()
+Windows::Storage::Streams::Buffer^ KinectHandler::GetBufferedColorData()
 {
 	colorUnread = false;
-	ColorFrameCache^ ret = m_colorBufferCache->GetAt(nextCFrameToRead);
+	Windows::Storage::Streams::Buffer^ ret = safe_cast<Windows::Storage::Streams::Buffer^>(m_colorBufferCache->GetAt(nextCFrameToRead));
 	nextCFrameToRead++;
 	nextCFrameToRead %= HANDLER_BUFFER;
 	return ret;
@@ -140,11 +140,7 @@ void KinectHandler::DepthReader_FrameArrived(Kinect::DepthFrameReader^ sender, K
 		m_cameraSpacePoints = cameraSpacePts;
 		m_depthData = depthData;
 
-		DepthFrameCache^ dfc = ref new DepthFrameCache();
-		dfc->nTime = nTime;
-		dfc->csps = cameraSpacePts;
-
-		m_cspCache->SetAt(nDFrames % HANDLER_BUFFER, dfc);
+		m_cspCache->SetAt(nDFrames % HANDLER_BUFFER, cameraSpacePts);
 		m_depthDataCache->SetAt(nDFrames % HANDLER_BUFFER, depthData);
 
 		nDFrames++;
@@ -174,12 +170,7 @@ void KinectHandler::ColorReader_FrameArrived(Kinect::ColorFrameReader^ sender, K
 		pColorFrame->CopyConvertedFrameDataToBuffer(colorBuffer, WindowsPreview::Kinect::ColorImageFormat::Rgba);
 
 		m_colorBuffer = colorBuffer;
-
-		ColorFrameCache^ cfc = ref new ColorFrameCache();
-		cfc->buffer = colorBuffer;
-		cfc->nTime = nTime;
-
-		m_colorBufferCache->SetAt(nCFrames % HANDLER_BUFFER, cfc);
+		m_colorBufferCache->SetAt(nCFrames % HANDLER_BUFFER, colorBuffer);
 
 		nCFrames++;
 		colorUnread = true;

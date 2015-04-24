@@ -212,10 +212,12 @@
     <ClInclude Include="App.xaml.h">
       <DependentUpon>App.xaml</DependentUpon>
     </ClInclude>
+    <ClInclude Include="ColorFrameCache.h" />
     <ClInclude Include="Common\DeviceResources.h" />
     <ClInclude Include="Content\Rendering\GCamera\GCamera.h" />
     <ClInclude Include="Content\Rendering\GCamera\GUtility.h" />
     <ClInclude Include="Content\KinectHandler\KinectHandler.h" />
+    <ClInclude Include="DepthFrameCache.h" />
     <ClInclude Include="KinectRecordMain.h" />
     <ClInclude Include="DirectXPage.xaml.h">
       <DependentUpon>DirectXPage.xaml</DependentUpon>
@@ -233,9 +235,11 @@
     <ClCompile Include="App.xaml.cpp">
       <DependentUpon>App.xaml</DependentUpon>
     </ClCompile>
+    <ClCompile Include="ColorFrameCache.cpp" />
     <ClCompile Include="Common\DeviceResources.cpp" />
     <ClCompile Include="Content\Rendering\GCamera\GCamera.cpp" />
     <ClCompile Include="Content\KinectHandler\KinectHandler.cpp" />
+    <ClCompile Include="DepthFrameCache.cpp" />
     <ClCompile Include="KinectRecordMain.cpp" />
     <ClCompile Include="DirectXPage.xaml.cpp">
       <DependentUpon>DirectXPage.xaml</DependentUpon>

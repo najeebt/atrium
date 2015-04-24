@@ -8,13 +8,13 @@
 #define COLOR_PIXEL_COUNT 1920*1080
 #define COLOR_WIDTH_MULT .000521
 #define COLOR_HEIGHT_MULT .000926
-#define FRAME_DURATION_MSEC 33
-#define NTIME_MULT 300
 
 #define HANDLER_BUFFER 30
 
-#include "ColorFrameCache.h"
-#include "DepthFrameCache.h"
+//typedef struct DepthFrameCache {
+//	Windows::Foundation::TimeSpan fTime;
+//	Platform::Array<WindowsPreview::Kinect::CameraSpacePoint>^ csp;
+//};
 
 namespace Kinect = WindowsPreview::Kinect;
 using namespace Windows::Foundation;
@@ -40,8 +40,8 @@ public:
 	Platform::Array<WindowsPreview::Kinect::CameraSpacePoint>^ GetCurrentDepthData();
 	Windows::Storage::Streams::Buffer^ GetCurrentColorData();
 	Platform::Array<WindowsPreview::Kinect::ColorSpacePoint>^ GetCurrentUVData();
-	DepthFrameCache^ GetBufferedDepthData();
-	ColorFrameCache^ GetBufferedColorData();
+	Platform::Array<WindowsPreview::Kinect::CameraSpacePoint>^ GetBufferedDepthData();
+	Windows::Storage::Streams::Buffer^ GetBufferedColorData();
 	Platform::Array<WindowsPreview::Kinect::ColorSpacePoint>^ GetBufferedUVData();
 	Platform::Array<WindowsPreview::Kinect::CameraSpacePoint>^ GetHands() { handUnread = false; return hands; }
 	bool HasUnreadDepthData() { return depthUnread; }
@@ -125,8 +125,8 @@ private:
 	Windows::Storage::Streams::Buffer^ m_colorBuffer;
 
 	// holding onto data until it's written
-	Platform::Collections::Vector<DepthFrameCache^>^ m_cspCache;
-	Platform::Collections::Vector<ColorFrameCache^>^ m_colorBufferCache;
+	Platform::Collections::Vector< Platform::Object^ >^ m_cspCache;
+	Platform::Collections::Vector< Platform::Object^ >^ m_colorBufferCache;
 	Platform::Collections::Vector< Platform::Object^ >^ m_depthDataCache;
 	
 	Platform::Collections::Vector<WindowsPreview::Kinect::Body ^>^ bodies;

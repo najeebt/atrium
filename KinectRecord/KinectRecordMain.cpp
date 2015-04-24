@@ -140,7 +140,7 @@ void KinectRecordMain::StoreFrameForWrite(const int frame, Platform::Array<Windo
 
 }
 
-void KinectRecordMain::WriteFrameToDisk(const Platform::Array<WindowsPreview::Kinect::CameraSpacePoint>^ cameraSpacePoints)
+void KinectRecordMain::WriteDepthFrameToDisk(const Platform::Array<WindowsPreview::Kinect::CameraSpacePoint>^ cameraSpacePoints)
 {
 	// XXX - nutso file naming gymnastics
 	std::wstringstream padFrame;
@@ -149,6 +149,7 @@ void KinectRecordMain::WriteFrameToDisk(const Platform::Array<WindowsPreview::Ki
 	fname.replace(18, 5, padFrame.str().c_str());
 	Platform::String^ fNameForWin = ref new Platform::String(fname.c_str());
 
+	// cache frames so they're accessible at time of write
 	int frame = m_currentFrame;
 	std::vector<byte> bytesV(reinterpret_cast<byte*>(cameraSpacePoints->begin()), reinterpret_cast<byte*>(cameraSpacePoints->end()));
 	Platform::Array<byte>^ bytes = ref new Platform::Array<byte>(&bytesV[0], bytesV.size());
@@ -167,7 +168,43 @@ void KinectRecordMain::WriteFrameToDisk(const Platform::Array<WindowsPreview::Ki
 	}
 }
 
-void KinectRecordMain::WriteUVToDisk(Platform::Array<WindowsPreview::Kinect::ColorSpacePoint>^ colorSpacePoints)
+void KinectRecordMain::WriteDepthUVFrameToDisk(const Platform::Array<WindowsPreview::Kinect::CameraSpacePoint>^ cameraSpacePoints, const Platform::Array<WindowsPreview::Kinect::ColorSpacePoint>^ colorSpacePoints)
+{
+	// XXX - nutso file naming gymnastics
+	std::wstringstream padFrame;
+	padFrame << std::setfill(L'0') << std::setw(5) << m_currentFrame;
+	std::wstring fname(L"KinectStreamDepth_00000.adv");
+	fname.replace(18, 5, padFrame.str().c_str());
+	Platform::String^ fNameForWin = ref new Platform::String(fname.c_str());
+
+	// cache frames so they're accessible at time of write
+	int frame = m_currentFrame;
+
+	// depth bytes
+	std::vector<byte> bytesV(reinterpret_cast<byte*>(cameraSpacePoints->begin()), reinterpret_cast<byte*>(cameraSpacePoints->end()));
+
+	// UV bytes
+	std::vector<byte> bytesUV(reinterpret_cast<byte*>(colorSpacePoints->begin()), reinterpret_cast<byte*>(colorSpacePoints->end()));
+
+	bytesV.insert(bytesV.end(), bytesUV.begin(), bytesUV.end());
+
+	Platform::Array<byte>^ bytes = ref new Platform::Array<byte>(&bytesV[0], bytesV.size());
+	m_depthDataCache->SetAt(frame, bytes);
+
+	if (m_takeFolder != nullptr) {
+
+		auto createFileTask = create_task(m_takeFolder->CreateFileAsync(fNameForWin));
+
+		createFileTask.then([this, frame](Windows::Storage::StorageFile^ file)
+		{
+			Windows::Storage::FileIO::WriteBytesAsync(file, safe_cast<Platform::Array<byte>^>(m_depthDataCache->GetAt(frame)));
+			m_depthDataCache->SetAt(frame, nullptr);
+		});
+
+	}
+}
+
+void KinectRecordMain::WriteUVToDisk(const Platform::Array<WindowsPreview::Kinect::ColorSpacePoint>^ colorSpacePoints)
 {
 	// XXX - nutso file naming gymnastics
 	std::wstringstream padFrame;
@@ -189,6 +226,7 @@ void KinectRecordMain::WriteUVToDisk(Platform::Array<WindowsPreview::Kinect::Col
 
 void KinectRecordMain::WriteJpegToDisk(Windows::Storage::Streams::Buffer^ colorData)
 {
+
 	// XXX - nutso file naming gymnastics
 	std::wstringstream padFrame;
 	padFrame << std::setfill(L'0') << std::setw(5) << m_currentFrame;
@@ -237,10 +275,19 @@ void KinectRecordMain::ExportFrameToObj(Windows::Storage::StorageFolder^ exportF
 	Platform::String^ fNameForWin = ref new Platform::String(fname.c_str());
 
 	create_task(exportFolder->CreateFileAsync(fNameForWin)).then([this, frameData](Windows::Storage::StorageFile^ objFile) {
+
 		Platform::Array<unsigned char>^ bytes = ref new Platform::Array<unsigned char>(frameData->Length);
+
+		// the CryptographicBuffer library just happens to have this utility
 		CryptographicBuffer::CopyToByteArray(frameData, &bytes);
+
+		// first half of the file stores point coordinates
 		Platform::Array<WindowsPreview::Kinect::CameraSpacePoint>^ csps =
-			ref new Platform::Array<WindowsPreview::Kinect::CameraSpacePoint>(reinterpret_cast<WindowsPreview::Kinect::CameraSpacePoint *>(bytes->begin()), bytes->Length / 12.0);
+			ref new Platform::Array<WindowsPreview::Kinect::CameraSpacePoint>(reinterpret_cast<WindowsPreview::Kinect::CameraSpacePoint *>(bytes->begin()), DEPTH_PIXEL_COUNT);
+
+		Platform::Array<WindowsPreview::Kinect::ColorSpacePoint>^ uvs =
+			ref new Platform::Array<WindowsPreview::Kinect::ColorSpacePoint>(reinterpret_cast<WindowsPreview::Kinect::ColorSpacePoint *>(bytes->begin() + DEPTH_PIXEL_COUNT * 12), DEPTH_PIXEL_COUNT);
+
 		Platform::Collections::Vector<Platform::String ^>^ lines = ref new Platform::Collections::Vector<Platform::String^>();
 		for (int i = 0; i < csps->Length; ++i) {
 			std::wstring wline;
@@ -253,17 +300,41 @@ void KinectRecordMain::ExportFrameToObj(Windows::Storage::StorageFolder^ exportF
 			Platform::String^ line = ref new Platform::String(wline.c_str());
 			lines->Append(line);
 		}
-		for (int i = 0; i < csps->Length; ++i) {
-			std::wstring wline;
-			if (std::isinf(csps[i].X)) {
-				continue;
+		for (int i = 0; i < KINECT_DEPTH_HEIGHT; ++i) {
+			for (int j = 0; j < KINECT_DEPTH_WIDTH; ++j) {
+				std::wstring wline;
+				WindowsPreview::Kinect::ColorSpacePoint p = uvs[i*KINECT_DEPTH_WIDTH + j];
+				if (std::isinf(p.X)) {
+					wline = L"vt 0 0 0";
+				}
+				else {
+					wline = std::wstring(L"vt " + std::to_wstring(p.X*COLOR_WIDTH_MULT) + L" " + std::to_wstring(p.Y*COLOR_HEIGHT_MULT));
+				}
+				Platform::String^ line = ref new Platform::String(wline.c_str());
+				lines->Append(line);
 			}
-			else {
-				wline = std::wstring(L"f " + std::to_wstring(i) + L" " + std::to_wstring(i+1) + L" " + std::to_wstring(i+KINECT_DEPTH_WIDTH));
-			}
-			Platform::String^ line = ref new Platform::String(wline.c_str());
-			lines->Append(line);
 		}
+		for (int i = 1; i < (KINECT_DEPTH_HEIGHT - 1); ++i) {
+			for (int j = 1; j < (KINECT_DEPTH_WIDTH - 1); ++j) {
+				int index = i * KINECT_DEPTH_WIDTH + j;
+				std::wstring wline;
+				float z = csps[index].Z;
+				float threshold = 5.0;	
+				if (z) {
+					if (1) {//abs(csps[index + 1].Z - z) < threshold && abs(csps[index + KINECT_DEPTH_WIDTH].Z - z) < threshold) {
+						wline = std::wstring(L"f " + std::to_wstring(index + 1) + L"/" + std::to_wstring(index + 1) + L" " + std::to_wstring(index + 2) + L"/" + std::to_wstring(index + 2) + L" " + std::to_wstring(index + KINECT_DEPTH_WIDTH + 1) + L"/" + std::to_wstring(index + KINECT_DEPTH_WIDTH + 1));
+						Platform::String^ line = ref new Platform::String(wline.c_str());
+						lines->Append(line);
+					}
+					if (1) {  //abs(csps[index - 1].Z - z) < threshold && abs(csps[index - KINECT_DEPTH_WIDTH].Z - z) < threshold) {
+						wline = std::wstring(L"f " + std::to_wstring(index + 1) + L"/" + std::to_wstring(index + 1) + L" " + std::to_wstring(index) + L"/" + std::to_wstring(index) + L" " + std::to_wstring(index - KINECT_DEPTH_WIDTH + 1) + L"/" + std::to_wstring(index - KINECT_DEPTH_WIDTH + 1));
+						Platform::String^ line = ref new Platform::String(wline.c_str());
+						lines->Append(line);
+					}
+				}
+			}
+		}
+
 		Windows::Storage::FileIO::WriteLinesAsync(objFile, lines);
 		
 		// this should only get incremented here
@@ -330,7 +401,7 @@ void KinectRecordMain::Update()
 			}
 			m_sceneRenderer->UpdateTime(-1);
 			if (m_streamColor && m_kinectHandler->HasUnreadColorData()) {
-				m_sceneRenderer->UpdateColorBuffer(m_kinectHandler->GetCurrentColorData(), m_kinectHandler->GetUVData());
+				m_sceneRenderer->UpdateColorBuffer(m_kinectHandler->GetCurrentColorData(), m_kinectHandler->GetCurrentUVData());
 			}
 
 			// advance to the next frame
@@ -340,11 +411,15 @@ void KinectRecordMain::Update()
 		else if ((m_kinectHandler->HasUnreadDepthData() || (m_streamColor && m_kinectHandler->HasUnreadColorData())) && m_isRecording) {
 			
 			if (m_kinectHandler->HasUnreadDepthData()) {
-				WriteFrameToDisk(m_kinectHandler->GetBufferedDepthData());
+				if (m_streamColor) {
+					WriteDepthUVFrameToDisk(m_kinectHandler->GetBufferedDepthData(), m_kinectHandler->GetBufferedUVData());
+				}
+				else {
+					WriteDepthFrameToDisk(m_kinectHandler->GetBufferedDepthData());
+				}
 			}
 
 			if (m_streamColor && m_kinectHandler->HasUnreadColorData()) {
-				//WriteUVToDisk(m_kinectHandler->GetUVData());
 				WriteJpegToDisk(m_kinectHandler->GetBufferedColorData());
 			}
 

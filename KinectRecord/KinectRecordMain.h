@@ -1,6 +1,7 @@
 ﻿#pragma once
 
 #define MAX_BUFFER_FRAMES 100
+#define RELATIVE_TIME_TO_FRAME_MULT 0.000003
 
 #include "Common\StepTimer.h"
 #include "Common\DeviceResources.h"
@@ -86,9 +87,13 @@ namespace KinectRecord
 
 		void StoreFrameForWrite(const int frame, Platform::Array<WindowsPreview::Kinect::CameraSpacePoint>^ cameraSpacePoints);
 		void WriteDepthFrameToDisk(const Platform::Array<WindowsPreview::Kinect::CameraSpacePoint>^ cameraSpacePoints);
-		void WriteDepthUVFrameToDisk(const Platform::Array<WindowsPreview::Kinect::CameraSpacePoint>^ cameraSpacePoints, const Platform::Array<WindowsPreview::Kinect::ColorSpacePoint>^ colorSpacePoints);
+		void WriteDepthUVFrameToDisk(int frame, const Platform::Array<WindowsPreview::Kinect::CameraSpacePoint>^ cameraSpacePoints, const Platform::Array<WindowsPreview::Kinect::ColorSpacePoint>^ colorSpacePoints);
 		void WriteUVToDisk(const Platform::Array<WindowsPreview::Kinect::ColorSpacePoint>^ colorSpacePoints);
-		void WriteJpegToDisk(Windows::Storage::Streams::Buffer^ colorData);
+		void WriteJpegToDisk(int frame, Windows::Storage::Streams::Buffer^ colorData);
+
+		int CalculateFrameNumber(uint64 startTime, uint64 currentTime);
+
+		uint64 m_recStartTime;
 
 		Platform::Array<byte>^ m_pixelStore;
 

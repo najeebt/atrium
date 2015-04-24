@@ -48,6 +48,9 @@ nCFrames(0)
 	m_colorBufferCache = ref new Platform::Collections::Vector<Platform::Object^>(HANDLER_BUFFER);
 	m_depthDataCache = ref new Platform::Collections::Vector<Platform::Object^>(HANDLER_BUFFER);
 
+	dTimes = ref new Platform::Array<Windows::Foundation::TimeSpan>(HANDLER_BUFFER);
+	cTimes = ref new Platform::Array<Windows::Foundation::TimeSpan>(HANDLER_BUFFER);
+
 	hands = ref new Platform::Array<WindowsPreview::Kinect::CameraSpacePoint>(2);
 
 	depthSpacePoints = ref new Platform::Array<WindowsPreview::Kinect::DepthSpacePoint>(DEPTH_PIXEL_COUNT);
@@ -79,6 +82,16 @@ Platform::Array<WindowsPreview::Kinect::CameraSpacePoint>^ KinectHandler::GetCur
 {
 	depthUnread = false;
 	return m_cameraSpacePoints;
+}
+
+uint64 KinectHandler::GetDTime()
+{
+	return dTimes->get(nextDFrameToRead).Duration;
+}
+
+uint64 KinectHandler::GetCTime()
+{
+	return cTimes->get(nextCFrameToRead).Duration;
 }
 
 Platform::Array<WindowsPreview::Kinect::CameraSpacePoint>^ KinectHandler::GetBufferedDepthData()
@@ -142,6 +155,7 @@ void KinectHandler::DepthReader_FrameArrived(Kinect::DepthFrameReader^ sender, K
 
 		m_cspCache->SetAt(nDFrames % HANDLER_BUFFER, cameraSpacePts);
 		m_depthDataCache->SetAt(nDFrames % HANDLER_BUFFER, depthData);
+		dTimes->set(nDFrames % HANDLER_BUFFER, nTime);
 
 		nDFrames++;
 		depthUnread = true;
@@ -171,6 +185,7 @@ void KinectHandler::ColorReader_FrameArrived(Kinect::ColorFrameReader^ sender, K
 
 		m_colorBuffer = colorBuffer;
 		m_colorBufferCache->SetAt(nCFrames % HANDLER_BUFFER, colorBuffer);
+		cTimes->set(nCFrames % HANDLER_BUFFER, nTime);
 
 		nCFrames++;
 		colorUnread = true;

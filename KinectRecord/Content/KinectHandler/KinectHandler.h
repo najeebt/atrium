@@ -43,6 +43,8 @@ public:
 	Platform::Array<WindowsPreview::Kinect::CameraSpacePoint>^ GetBufferedDepthData();
 	Windows::Storage::Streams::Buffer^ GetBufferedColorData();
 	Platform::Array<WindowsPreview::Kinect::ColorSpacePoint>^ GetBufferedUVData();
+	uint64 GetDTime();
+	uint64 GetCTime();
 	Platform::Array<WindowsPreview::Kinect::CameraSpacePoint>^ GetHands() { handUnread = false; return hands; }
 	bool HasUnreadDepthData() { return depthUnread; }
 	bool HasUnreadColorData() { return colorUnread; }
@@ -72,6 +74,8 @@ private:
 	int nextCFrameToRead;
 	int nCFrames;
 	int nDFrames;
+	Platform::Array<Windows::Foundation::TimeSpan>^ dTimes;
+	Platform::Array<Windows::Foundation::TimeSpan>^ cTimes;
 
 	// Current Kinect
 	WindowsPreview::Kinect::KinectSensor^ m_kinectSensor;

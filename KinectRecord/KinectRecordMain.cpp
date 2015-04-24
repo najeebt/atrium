@@ -42,6 +42,7 @@ m_pointerLocationX(0.0f)
 	// 60 fps to make sure we're getting all the data
 	m_timer.SetFixedTimeStep(true);
 	m_timer.SetTargetElapsedSeconds(1.0 / 60);
+	
 }
 
 KinectRecordMain::~KinectRecordMain()
@@ -103,8 +104,6 @@ void KinectRecordMain::PrepToRecord()
 	fname.replace(13, 3, padTake.str().c_str());
 	Platform::String^ fNameForWin = ref new Platform::String(fname.c_str());
 	m_currentTake++;
-
-	m_recStartTime.Duration = 0;
 
 	create_task(m_sessionFolder->CreateFolderAsync(fNameForWin)).then([this](Windows::Storage::StorageFolder^ folder)
 	{
@@ -169,33 +168,20 @@ void KinectRecordMain::WriteDepthFrameToDisk(const Platform::Array<WindowsPrevie
 	}
 }
 
-int KinectRecordMain::CalculateFrameFromNTime(Windows::Foundation::TimeSpan nTime)
+void KinectRecordMain::WriteDepthUVFrameToDisk(const Platform::Array<WindowsPreview::Kinect::CameraSpacePoint>^ cameraSpacePoints, const Platform::Array<WindowsPreview::Kinect::ColorSpacePoint>^ colorSpacePoints)
 {
-	if (m_recStartTime.Duration == 0) {
-		m_recStartTime.Duration = nTime.Duration;
-	}
-
-	int64 fNo = (nTime.Duration - m_recStartTime.Duration) * NTIME_MULT;
-	return fNo + 1;
-}
-
-void KinectRecordMain::WriteDepthUVFrameToDisk(DepthFrameCache^ dfc, const Platform::Array<WindowsPreview::Kinect::ColorSpacePoint>^ colorSpacePoints)
-{
-	// hopefully correct frame calc
-	int frame = CalculateFrameFromNTime(dfc->nTime);
-
 	// XXX - nutso file naming gymnastics
 	std::wstringstream padFrame;
-	padFrame << std::setfill(L'0') << std::setw(5) << frame;
+	padFrame << std::setfill(L'0') << std::setw(5) << m_currentFrame;
 	std::wstring fname(L"KinectStreamDepth_00000.adv");
 	fname.replace(18, 5, padFrame.str().c_str());
 	Platform::String^ fNameForWin = ref new Platform::String(fname.c_str());
 
 	// cache frames so they're accessible at time of write
-	//int frame = m_currentFrame;
+	int frame = m_currentFrame;
 
 	// depth bytes
-	std::vector<byte> bytesV(reinterpret_cast<byte*>(dfc->csps->begin()), reinterpret_cast<byte*>(dfc->csps->end()));
+	std::vector<byte> bytesV(reinterpret_cast<byte*>(cameraSpacePoints->begin()), reinterpret_cast<byte*>(cameraSpacePoints->end()));
 
 	// UV bytes
 	std::vector<byte> bytesUV(reinterpret_cast<byte*>(colorSpacePoints->begin()), reinterpret_cast<byte*>(colorSpacePoints->end()));
@@ -238,21 +224,18 @@ void KinectRecordMain::WriteUVToDisk(const Platform::Array<WindowsPreview::Kinec
 	}
 }
 
-void KinectRecordMain::WriteJpegToDisk(ColorFrameCache^ cfc)
+void KinectRecordMain::WriteJpegToDisk(Windows::Storage::Streams::Buffer^ colorData)
 {
-	// hopefully correct frame calc
-	int frame = CalculateFrameFromNTime(cfc->nTime);
 
 	// XXX - nutso file naming gymnastics
 	std::wstringstream padFrame;
-	padFrame << std::setfill(L'0') << std::setw(5) << frame;
+	padFrame << std::setfill(L'0') << std::setw(5) << m_currentFrame;
 	std::wstring fname(L"KinectPic_00000.jpg");
 	fname.replace(10, 5, padFrame.str().c_str());
 	Platform::String^ fNameForWin = ref new Platform::String(fname.c_str());
 
-	//int frame = m_currentFrame;
-
-	DataReader^ reader = DataReader::FromBuffer(cfc->buffer);
+	int frame = m_currentFrame;
+	DataReader^ reader = DataReader::FromBuffer(colorData);
 	auto pixelStore = ref new Platform::Array<byte>(1920 * 1080 * 4);
 	reader->ReadBytes(pixelStore);
  	m_colorBufferCache->SetAt(frame, pixelStore);
@@ -432,7 +415,7 @@ void KinectRecordMain::Update()
 					WriteDepthUVFrameToDisk(m_kinectHandler->GetBufferedDepthData(), m_kinectHandler->GetBufferedUVData());
 				}
 				else {
-					//WriteDepthFrameToDisk(m_kinectHandler->GetBufferedDepthData());
+					WriteDepthFrameToDisk(m_kinectHandler->GetBufferedDepthData());
 				}
 			}
 

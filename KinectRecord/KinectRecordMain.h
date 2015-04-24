@@ -86,9 +86,11 @@ namespace KinectRecord
 
 		void StoreFrameForWrite(const int frame, Platform::Array<WindowsPreview::Kinect::CameraSpacePoint>^ cameraSpacePoints);
 		void WriteDepthFrameToDisk(const Platform::Array<WindowsPreview::Kinect::CameraSpacePoint>^ cameraSpacePoints);
-		void WriteDepthUVFrameToDisk(const Platform::Array<WindowsPreview::Kinect::CameraSpacePoint>^ cameraSpacePoints, const Platform::Array<WindowsPreview::Kinect::ColorSpacePoint>^ colorSpacePoints);
+		void WriteDepthUVFrameToDisk(DepthFrameCache^ dfc, const Platform::Array<WindowsPreview::Kinect::ColorSpacePoint>^ colorSpacePoints);
 		void WriteUVToDisk(const Platform::Array<WindowsPreview::Kinect::ColorSpacePoint>^ colorSpacePoints);
-		void WriteJpegToDisk(Windows::Storage::Streams::Buffer^ colorData);
+		void WriteJpegToDisk(ColorFrameCache^ cfc);
+
+		int CalculateFrameFromNTime(Windows::Foundation::TimeSpan);
 
 		Platform::Array<byte>^ m_pixelStore;
 
@@ -105,6 +107,8 @@ namespace KinectRecord
 
 		// Rendering loop timer.
 		DX::StepTimer m_timer;
+
+		Windows::Foundation::TimeSpan m_recStartTime;
 
 		// Track current input pointer position.
 		int m_trackingType;

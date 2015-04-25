@@ -10,11 +10,7 @@
 #define COLOR_HEIGHT_MULT .000926
 
 #define HANDLER_BUFFER 30
-
-//typedef struct DepthFrameCache {
-//	Windows::Foundation::TimeSpan fTime;
-//	Platform::Array<WindowsPreview::Kinect::CameraSpacePoint>^ csp;
-//};
+#define BUFFER_MAX_SIZE 30
 
 namespace Kinect = WindowsPreview::Kinect;
 using namespace Windows::Foundation;
@@ -76,6 +72,9 @@ private:
 	int nDFrames;
 	Platform::Array<Windows::Foundation::TimeSpan>^ dTimes;
 	Platform::Array<Windows::Foundation::TimeSpan>^ cTimes;
+
+	int m_latestDFrame;
+	int m_latestCFrame;
 
 	// Current Kinect
 	WindowsPreview::Kinect::KinectSensor^ m_kinectSensor;

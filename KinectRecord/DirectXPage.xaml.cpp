@@ -93,6 +93,7 @@ DirectXPage::DirectXPage():
 	m_main->StartRenderLoop();
 
 	m_main->m_kinectHandler->InitializeDefaultSensor();
+
 }
 
 DirectXPage::~DirectXPage()

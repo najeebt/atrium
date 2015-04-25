@@ -87,7 +87,7 @@ namespace KinectRecord
 
 		void StoreFrameForWrite(const int frame, Platform::Array<WindowsPreview::Kinect::CameraSpacePoint>^ cameraSpacePoints);
 		void WriteDepthFrameToDisk(const Platform::Array<WindowsPreview::Kinect::CameraSpacePoint>^ cameraSpacePoints);
-		void WriteDepthUVFrameToDisk(int frame, const Platform::Array<WindowsPreview::Kinect::CameraSpacePoint>^ cameraSpacePoints, const Platform::Array<WindowsPreview::Kinect::ColorSpacePoint>^ colorSpacePoints);
+		void WriteDepthUVFrameToDisk(int frame, Platform::Array<WindowsPreview::Kinect::CameraSpacePoint>^ cameraSpacePoints, Platform::Array<WindowsPreview::Kinect::ColorSpacePoint>^ colorSpacePoints);
 		void WriteUVToDisk(const Platform::Array<WindowsPreview::Kinect::ColorSpacePoint>^ colorSpacePoints);
 		void WriteJpegToDisk(int frame, Windows::Storage::Streams::Buffer^ colorData);
 

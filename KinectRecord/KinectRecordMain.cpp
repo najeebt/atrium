@@ -41,7 +41,7 @@ m_pointerLocationX(0.0f)
 
 	// 60 fps to make sure we're getting all the data
 	m_timer.SetFixedTimeStep(true);
-	m_timer.SetTargetElapsedSeconds(1.0 / 60);
+	m_timer.SetTargetElapsedSeconds(1.0 / 30.0);
 	
 }
 
@@ -176,8 +176,13 @@ void KinectRecordMain::WriteDepthFrameToDisk(const Platform::Array<WindowsPrevie
 	}
 }
 
-void KinectRecordMain::WriteDepthUVFrameToDisk(int frame, const Platform::Array<WindowsPreview::Kinect::CameraSpacePoint>^ cameraSpacePoints, const Platform::Array<WindowsPreview::Kinect::ColorSpacePoint>^ colorSpacePoints)
+void KinectRecordMain::WriteDepthUVFrameToDisk(int frame, Platform::Array<WindowsPreview::Kinect::CameraSpacePoint>^ cameraSpacePoints, Platform::Array<WindowsPreview::Kinect::ColorSpacePoint>^ colorSpacePoints)
 {
+
+	if (frame < 0) {
+		return;
+	}
+
 	// XXX - nutso file naming gymnastics
 	std::wstringstream padFrame;
 	padFrame << std::setfill(L'0') << std::setw(5) << frame;
@@ -395,10 +400,11 @@ void KinectRecordMain::Update()
 	// Update scene objects.
 	m_timer.Tick([&]()
 	{
-		m_sceneRenderer->Update(m_timer);
 
 		// live feed from kinect
 		if (m_kinectHandler->HasUnreadDepthData() && !m_isPlayingBack && !m_isRecording && !m_isExporting) {
+
+			m_sceneRenderer->Update(m_timer);
 
 			// DirectX rendering
 			m_sceneRenderer->UpdateVertexBuffer(m_kinectHandler->GetCurrentDepthData());
@@ -419,7 +425,7 @@ void KinectRecordMain::Update()
 			if (m_kinectHandler->HasUnreadDepthData()) {
 				if (m_streamColor) {
 					int dFrame = CalculateFrameNumber(m_recStartTime, m_kinectHandler->GetDTime());
-					WriteDepthUVFrameToDisk(dFrame, m_kinectHandler->GetBufferedDepthData(), m_kinectHandler->GetBufferedUVData());
+					WriteDepthUVFrameToDisk(dFrame, m_kinectHandler->GetCurrentDepthData(), m_kinectHandler->GetCurrentUVData());
 				}
 				else {
 					WriteDepthFrameToDisk(m_kinectHandler->GetBufferedDepthData());
@@ -428,7 +434,7 @@ void KinectRecordMain::Update()
 
 			if (m_streamColor && m_kinectHandler->HasUnreadColorData()) {
 				int cFrame = CalculateFrameNumber(m_recStartTime, m_kinectHandler->GetCTime());
-				WriteJpegToDisk(cFrame, m_kinectHandler->GetBufferedColorData());
+				WriteJpegToDisk(cFrame, m_kinectHandler->GetCurrentColorData());
 			}
 
 			// advance to the next frame
@@ -436,6 +442,9 @@ void KinectRecordMain::Update()
 		}
 		// playback
 		else if (m_isPlayingBack) {
+
+			m_sceneRenderer->Update(m_timer);
+
 			if (m_playbackBuffer->Size >= m_currentFrame) {
 				Platform::Array<WindowsPreview::Kinect::CameraSpacePoint>^ csps = safe_cast<Platform::Array<WindowsPreview::Kinect::CameraSpacePoint>^>(m_playbackBuffer->GetAt(m_currentFrame - 1));
 				if (csps != nullptr) {

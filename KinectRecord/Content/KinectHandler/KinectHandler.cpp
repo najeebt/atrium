@@ -86,12 +86,12 @@ Platform::Array<WindowsPreview::Kinect::CameraSpacePoint>^ KinectHandler::GetCur
 
 uint64 KinectHandler::GetDTime()
 {
-	return dTimes->get(nextDFrameToRead).Duration;
+	return dTimes->get(m_latestDFrame).Duration;
 }
 
 uint64 KinectHandler::GetCTime()
 {
-	return cTimes->get(nextCFrameToRead).Duration;
+	return cTimes->get(m_latestCFrame).Duration;
 }
 
 Platform::Array<WindowsPreview::Kinect::CameraSpacePoint>^ KinectHandler::GetBufferedDepthData()
@@ -153,9 +153,16 @@ void KinectHandler::DepthReader_FrameArrived(Kinect::DepthFrameReader^ sender, K
 		m_cameraSpacePoints = cameraSpacePts;
 		m_depthData = depthData;
 
-		m_cspCache->SetAt(nDFrames % HANDLER_BUFFER, cameraSpacePts);
-		m_depthDataCache->SetAt(nDFrames % HANDLER_BUFFER, depthData);
-		dTimes->set(nDFrames % HANDLER_BUFFER, nTime);
+		m_latestDFrame = nDFrames % HANDLER_BUFFER;
+
+		m_cspCache->SetAt(m_latestDFrame, cameraSpacePts);
+		m_depthDataCache->SetAt(m_latestDFrame, depthData);
+		dTimes->set(m_latestDFrame, nTime);
+
+		//if ((nDFrames % HANDLER_BUFFER) > BUFFER_MAX_SIZE) {
+		//	m_cspCache->SetAt(nDFrames % HANDLER_BUFFER - BUFFER_MAX_SIZE, nullptr);
+		//	m_depthDataCache->SetAt(nDFrames % HANDLER_BUFFER - BUFFER_MAX_SIZE, nullptr);
+		//}
 
 		nDFrames++;
 		depthUnread = true;
@@ -184,8 +191,15 @@ void KinectHandler::ColorReader_FrameArrived(Kinect::ColorFrameReader^ sender, K
 		pColorFrame->CopyConvertedFrameDataToBuffer(colorBuffer, WindowsPreview::Kinect::ColorImageFormat::Rgba);
 
 		m_colorBuffer = colorBuffer;
-		m_colorBufferCache->SetAt(nCFrames % HANDLER_BUFFER, colorBuffer);
-		cTimes->set(nCFrames % HANDLER_BUFFER, nTime);
+
+		m_latestCFrame = nCFrames % HANDLER_BUFFER;
+
+		m_colorBufferCache->SetAt(m_latestCFrame, colorBuffer);
+		cTimes->set(m_latestCFrame, nTime);
+
+		//if ((nCFrames % HANDLER_BUFFER) > BUFFER_MAX_SIZE) {
+		//	m_colorBufferCache->SetAt(nCFrames % HANDLER_BUFFER - BUFFER_MAX_SIZE, nullptr);
+		//}
 
 		nCFrames++;
 		colorUnread = true;

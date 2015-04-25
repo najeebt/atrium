@@ -121,9 +121,9 @@ void KinectRender::UpdateVertexBuffer(Platform::Array<WindowsPreview::Kinect::Ca
 
 	if (m_vertexBufferData[0].size() == cameraSpacePoints->Length) {
 
-		for (int i = 0; i < (FRAME_LAG - 1); ++i) {
-			m_vertexBufferData[i + 1] = m_vertexBufferData[i];
-		}
+		//for (int i = 0; i < (FRAME_LAG - 1); ++i) {
+		//	m_vertexBufferData[i + 1] = m_vertexBufferData[i];
+		//}
 
 		m_vertexBufferData[0].assign(reinterpret_cast<VertexPosition *>(cameraSpacePoints->begin()), reinterpret_cast<VertexPosition *>(cameraSpacePoints->end()));
 

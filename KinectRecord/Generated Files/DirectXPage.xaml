@@ -45,7 +45,7 @@
             <Button x:ConnectionId='9' Content="EXPORT FROM" HorizontalAlignment="Stretch"  VerticalAlignment="Stretch" Margin="0,0,72,0"                       />
             <Button x:ConnectionId='10' Content="EXPORT TO" HorizontalAlignment="Stretch"  VerticalAlignment="Stretch" Margin="0,0,72,40" RenderTransformOrigin="0.443,-5.579"                       />
             <CheckBox Content="Depth" HorizontalAlignment="Left" IsChecked="True" IsEnabled="False" VerticalAlignment="Top"/>
-            <CheckBox x:ConnectionId='11' x:Name="ColorCheckBox" Content="Color" HorizontalAlignment="Left" VerticalAlignment="Top"                         />
+            <CheckBox x:ConnectionId='11' x:Name="ColorCheckBox" Content="Color" HorizontalAlignment="Left" VerticalAlignment="Top"                          IsChecked="True"/>
             <Button x:ConnectionId='12' Content="Pixel Shader" HorizontalAlignment="Left" Margin="0,20,0,0" VerticalAlignment="Top"                       />
             <Button x:ConnectionId='13' Content="Vertex Shader" HorizontalAlignment="Left" Margin="0,0,0,0" VerticalAlignment="Top"                       />
             <Button x:ConnectionId='14' Content="Geometry Shader" HorizontalAlignment="Left" Margin="0,0,0,0" VerticalAlignment="Top"                       />

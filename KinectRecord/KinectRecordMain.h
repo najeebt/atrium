@@ -60,6 +60,9 @@ namespace KinectRecord
 		int m_currentTake;
 		int m_currentExportFrame;
 
+		int m_lDFrame;
+		int m_lCFrame;
+
 		// playback buffer stores MAX_BUFFER_FRAMES frames of point data
 		Platform::Collections::Vector< Platform::Object^ >^ m_playbackBuffer;
 		Platform::Collections::Vector< Platform::Object^ >^ m_saveToDiskBuffer;

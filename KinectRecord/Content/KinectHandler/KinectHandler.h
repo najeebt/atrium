@@ -41,12 +41,15 @@ public:
 	Platform::Array<WindowsPreview::Kinect::ColorSpacePoint>^ GetBufferedUVData();
 	uint64 GetDTime();
 	uint64 GetCTime();
+	uint64 GetCurrentCTime();
+	uint64 GetCurrentDTime();
 	Platform::Array<WindowsPreview::Kinect::CameraSpacePoint>^ GetHands() { handUnread = false; return hands; }
 	bool HasUnreadDepthData() { return depthUnread; }
 	bool HasUnreadColorData() { return colorUnread; }
 	bool HasUnreadHandData() { return handUnread; }
 	int GetNFrames() { return nFrames; }
 	Windows::Foundation::Collections::IVectorView<WindowsPreview::Kinect::CameraSpacePoint>^ GetHDFacePoints();
+	void Catchup();
 
 private:
 

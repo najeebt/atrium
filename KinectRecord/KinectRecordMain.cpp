@@ -420,35 +420,10 @@ void KinectRecordMain::Update()
 			m_currentFrame++;
 		}
 		// stream data to disk during recording
-		else if ((m_kinectHandler->HasUnreadDepthData() || (m_streamColor && m_kinectHandler->HasUnreadColorData())) && m_isRecording) {
+		else if (m_kinectHandler->HasUnreadDepthData() && m_isRecording) {
 			
-			//m_kinectHandler->Catchup();
-
-			if (m_kinectHandler->HasUnreadDepthData()) {
-				//int dFrame = CalculateFrameNumber(m_recStartTime, m_kinectHandler->GetDTime());
-				//if (dFrame >= 0) {
-				//	WriteDepthUVFrameToDisk(dFrame, m_kinectHandler->GetBufferedDepthData(), m_kinectHandler->GetBufferedUVData());
-				//}
-				int dFrame = CalculateFrameNumber(m_recStartTime, m_kinectHandler->GetCurrentDTime());
-				dFrame = dFrame == m_lDFrame ? dFrame + 1 : dFrame;
-				if (dFrame > m_lDFrame) {
-					WriteDepthUVFrameToDisk(dFrame, m_kinectHandler->GetCurrentDepthData(), m_kinectHandler->GetCurrentUVData());
-					m_lDFrame = dFrame;
-				}
-			}
-
-			if (m_streamColor && m_kinectHandler->HasUnreadColorData()) {
-				//int cFrame = CalculateFrameNumber(m_recStartTime, m_kinectHandler->GetCTime());
-				//if (cFrame >= 0) {
-				//	WriteJpegToDisk(cFrame, m_kinectHandler->GetBufferedColorData());
-				//}
-				int cFrame = CalculateFrameNumber(m_recStartTime, m_kinectHandler->GetCurrentCTime());
-				cFrame = cFrame == m_lCFrame ? cFrame + 1 : cFrame;
-				if (cFrame > m_lCFrame) {
-					WriteJpegToDisk(cFrame, m_kinectHandler->GetCurrentColorData());
-					m_lCFrame = cFrame;
-				}
-			}
+			WriteDepthUVFrameToDisk(m_currentFrame, m_kinectHandler->GetCurrentDepthData(), m_kinectHandler->GetCurrentUVData());
+			WriteJpegToDisk(m_currentFrame, m_kinectHandler->GetCurrentColorData());
 
 			// advance to the next frame
 			m_currentFrame++;

@@ -91,6 +91,8 @@ private:
 	WindowsPreview::Kinect::BodyFrameSource^ bodyFrameSource;
 	WindowsPreview::Kinect::BodyFrameReader^ bodyFrameReader;
 
+	WindowsPreview::Kinect::MultiSourceFrameReader^ multiSourceFrameReader;
+
 	Microsoft::Kinect::Face::HighDefinitionFaceFrameSource^ HDFaceFrameSource;
 	Microsoft::Kinect::Face::HighDefinitionFaceFrameReader^ HDFaceFrameReader;
 
@@ -142,6 +144,7 @@ private:
 	void ColorReader_FrameArrived(WindowsPreview::Kinect::ColorFrameReader^ sender, WindowsPreview::Kinect::ColorFrameArrivedEventArgs^ e);
 	void BodyReader_FrameArrived(WindowsPreview::Kinect::BodyFrameReader^ sender, WindowsPreview::Kinect::BodyFrameArrivedEventArgs^ e);
 	void HDFaceReader_FrameArrived(HighDefinitionFaceFrameReader^ sender, HighDefinitionFaceFrameArrivedEventArgs^ e);
+	void MultiSource_FrameArrived(WindowsPreview::Kinect::MultiSourceFrameReader^ sender, WindowsPreview::Kinect::MultiSourceFrameArrivedEventArgs^ e);
 
 	WindowsPreview::Kinect::Body^ KinectHandler::FindBodyWithTrackingId(UINT64 trackingId);
 	WindowsPreview::Kinect::Body^ KinectHandler::FindClosestBody();

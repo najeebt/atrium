@@ -46,8 +46,8 @@ m_pointerLocationX(0.0f)
 
 	// 60 fps to make sure we're getting all the data
 	m_timer.SetFixedTimeStep(true);
-	m_timer.SetTargetElapsedSeconds(1.0 / 60.0);
-	
+	m_timer.SetTargetElapsedSeconds(1.0 / 12.0);
+
 }
 
 KinectRecordMain::~KinectRecordMain()
@@ -290,6 +290,8 @@ void KinectRecordMain::ExportFrameToObj(Windows::Storage::StorageFolder^ exportF
 
 	create_task(exportFolder->CreateFileAsync(fNameForWin)).then([this, frameData](Windows::Storage::StorageFile^ objFile) {
 
+		std::vector<int> indexMap(DEPTH_PIXEL_COUNT, -1);
+
 		Platform::Array<unsigned char>^ bytes = ref new Platform::Array<unsigned char>(frameData->Length);
 
 		// the CryptographicBuffer library just happens to have this utility
@@ -303,51 +305,79 @@ void KinectRecordMain::ExportFrameToObj(Windows::Storage::StorageFolder^ exportF
 			ref new Platform::Array<WindowsPreview::Kinect::ColorSpacePoint>(reinterpret_cast<WindowsPreview::Kinect::ColorSpacePoint *>(bytes->begin() + DEPTH_PIXEL_COUNT * 12), DEPTH_PIXEL_COUNT);
 
 		Platform::Collections::Vector<Platform::String ^>^ lines = ref new Platform::Collections::Vector<Platform::String^>();
+		// points
+		int vindex = 1;
 		for (int i = 0; i < csps->Length; ++i) {
 			std::wstring wline;
 			if (std::isinf(csps[i].X)) {
-				wline = L"v 0 0 0";
+				continue;
 			}
 			else {
 				wline = std::wstring(L"v " + std::to_wstring(csps[i].X) + L" " + std::to_wstring(csps[i].Y) + L" " + std::to_wstring(csps[i].Z));
+				indexMap[i] = vindex;
+				vindex++;
 			}
 			Platform::String^ line = ref new Platform::String(wline.c_str());
 			lines->Append(line);
 		}
+
+		// face texture coordinates
 		for (int i = 0; i < KINECT_DEPTH_HEIGHT; ++i) {
 			for (int j = 0; j < KINECT_DEPTH_WIDTH; ++j) {
+
+				int index = i*KINECT_DEPTH_WIDTH + j;
+				if (indexMap[index] == -1) {
+					continue;
+				}
+
 				std::wstring wline;
-				WindowsPreview::Kinect::ColorSpacePoint p = uvs[i*KINECT_DEPTH_WIDTH + j];
-				if (std::isinf(p.X)) {
-					wline = L"vt 0 0 0";
-				}
-				else {
-					wline = std::wstring(L"vt " + std::to_wstring(p.X*COLOR_WIDTH_MULT) + L" " + std::to_wstring(p.Y*COLOR_HEIGHT_MULT));
-				}
+				WindowsPreview::Kinect::ColorSpacePoint p = uvs[index];
+				wline = std::wstring(L"vt " + std::to_wstring(p.X*COLOR_WIDTH_MULT) + L" " + std::to_wstring(p.Y*COLOR_HEIGHT_MULT));
 				Platform::String^ line = ref new Platform::String(wline.c_str());
 				lines->Append(line);
 			}
 		}
+
+		// faces
 		for (int i = 1; i < (KINECT_DEPTH_HEIGHT - 1); ++i) {
 			for (int j = 1; j < (KINECT_DEPTH_WIDTH - 1); ++j) {
 				int index = i * KINECT_DEPTH_WIDTH + j;
 				std::wstring wline;
-				float z = csps[index].Z;
-				float threshold = 5.0;	
-				if (z) {
-					wline = std::wstring(L"f " + std::to_wstring(index + 1) + L"/" + std::to_wstring(index + 1) + L" " + std::to_wstring(index + 2) + L"/" + std::to_wstring(index + 2) + L" " + std::to_wstring(index + KINECT_DEPTH_WIDTH + 1) + L"/" + std::to_wstring(index + KINECT_DEPTH_WIDTH + 1));
+
+				// upper left face
+				int v1 = index + 1;
+				int v2 = index + 2;
+				int v3 = index + KINECT_DEPTH_WIDTH + 1;
+
+				int i1 = indexMap[v1];
+				int i2 = indexMap[v2];
+				int i3 = indexMap[v3];
+
+				if (i1 > 0 && i2 > 0 && i3 > 0) {
+					wline = std::wstring(L"f " + std::to_wstring(i1) + L"/" + std::to_wstring(i1) + L" " + std::to_wstring(i2) + L"/" + std::to_wstring(i2) + L" " + std::to_wstring(i3) + L"/" + std::to_wstring(i3));
 					Platform::String^ lineA = ref new Platform::String(wline.c_str());
 					lines->Append(lineA);
+				}
 
-					wline = std::wstring(L"f " + std::to_wstring(index + 1) + L"/" + std::to_wstring(index + 1) + L" " + std::to_wstring(index) + L"/" + std::to_wstring(index) + L" " + std::to_wstring(index - KINECT_DEPTH_WIDTH + 1) + L"/" + std::to_wstring(index - KINECT_DEPTH_WIDTH + 1));
-					Platform::String^ lineB = ref new Platform::String(wline.c_str());
-					lines->Append(lineB);
+				// lower right face
+				v1 = index + 1;
+				v2 = index;
+				v3 = index - KINECT_DEPTH_WIDTH + 1;
+
+				i1 = indexMap[v1];
+				i2 = indexMap[v2];
+				i3 = indexMap[v3];
+				
+				if (i1 > 0 && i2 > 0 && i3 > 0) {
+					wline = std::wstring(L"f " + std::to_wstring(i1) + L"/" + std::to_wstring(i1) + L" " + std::to_wstring(i2) + L"/" + std::to_wstring(i2) + L" " + std::to_wstring(i3) + L"/" + std::to_wstring(i3));
+					Platform::String^ lineA = ref new Platform::String(wline.c_str());
+					lines->Append(lineA);
 				}
 			}
 		}
 
 		Windows::Storage::FileIO::WriteLinesAsync(objFile, lines);
-		
+
 		// this should only get incremented here
 		m_currentExportFrame++;
 		if (m_currentExportFrame < m_exportFiles->Size) {
@@ -380,7 +410,7 @@ void KinectRecordMain::ExportTakeToObj()
 			create_task(Windows::Storage::FileIO::ReadBufferAsync(frameFile)).then([this, frameFile](Windows::Storage::Streams::IBuffer^ buffer) {
 				ExportFrameToObj(this->m_exportToFolder, frameFile->Name, buffer);
 			});
-		}); 
+		});
 	}
 }
 
@@ -421,7 +451,7 @@ void KinectRecordMain::Update()
 		}
 		// stream data to disk during recording
 		else if (m_kinectHandler->HasUnreadDepthData() && m_isRecording) {
-			
+
 			WriteDepthUVFrameToDisk(m_currentFrame, m_kinectHandler->GetCurrentDepthData(), m_kinectHandler->GetCurrentUVData());
 			WriteJpegToDisk(m_currentFrame, m_kinectHandler->GetCurrentColorData());
 
@@ -452,7 +482,7 @@ void KinectRecordMain::TrackingUpdate(int trackingType, float positionX, float p
 {
 	m_trackingType = trackingType;
 	m_pointerLocationX = positionX;
-	m_pointerLocationY = positionY; 
+	m_pointerLocationY = positionY;
 }
 
 // Process all input from the user before updating game state

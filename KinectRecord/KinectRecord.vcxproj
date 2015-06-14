@@ -95,9 +95,10 @@
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup>
-    <PackageCertificateKeyFile>KinectRecord_TemporaryKey.pfx</PackageCertificateKeyFile>
+    <PackageCertificateKeyFile>KinectRecord_StoreKey.pfx</PackageCertificateKeyFile>
     <AppxAutoIncrementPackageRevision>True</AppxAutoIncrementPackageRevision>
     <AppxBundlePlatforms>x86</AppxBundlePlatforms>
+    <PackageCertificateThumbprint>0C5D4C008131CE3999681DCE5442BD32F9C3045D</PackageCertificateThumbprint>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <IncludePath>$(KINECTSDK20_DIR)\inc;$(IncludePath)</IncludePath>
@@ -256,6 +257,7 @@
     <AppxManifest Include="Package.appxmanifest">
       <SubType>Designer</SubType>
     </AppxManifest>
+    <None Include="KinectRecord_StoreKey.pfx" />
     <None Include="KinectRecord_TemporaryKey.pfx" />
   </ItemGroup>
   <ItemGroup>
@@ -390,6 +392,9 @@
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="KinectRecord.rc" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Package.StoreAssociation.xml" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

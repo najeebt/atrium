@@ -117,6 +117,8 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="KinectRecord_TemporaryKey.pfx" />
+    <None Include="Package.StoreAssociation.xml" />
+    <None Include="KinectRecord_StoreKey.pfx" />
   </ItemGroup>
   <ItemGroup>
     <Page Include="DirectXPage.xaml" />

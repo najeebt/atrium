@@ -33,54 +33,42 @@ public:
 	KinectHandler();
 
 	void	KinectHandler::InitializeDefaultSensor();
-	Platform::Array<WindowsPreview::Kinect::CameraSpacePoint>^ GetCurrentDepthData();
-	Windows::Storage::Streams::Buffer^ GetCurrentColorData();
-	Platform::Array<WindowsPreview::Kinect::ColorSpacePoint>^ GetCurrentUVData();
-	Platform::Array<WindowsPreview::Kinect::CameraSpacePoint>^ GetBufferedDepthData();
-	Windows::Storage::Streams::Buffer^ GetBufferedColorData();
-	Platform::Array<WindowsPreview::Kinect::ColorSpacePoint>^ GetBufferedUVData();
-	uint64 GetDTime();
-	uint64 GetCTime();
-	uint64 GetCurrentCTime();
-	uint64 GetCurrentDTime();
-	Platform::Array<WindowsPreview::Kinect::CameraSpacePoint>^ GetHands() { handUnread = false; return hands; }
+
 	bool HasUnreadDepthData() { return depthUnread; }
 	bool HasUnreadColorData() { return colorUnread; }
 	bool HasUnreadHandData() { return handUnread; }
-	int GetNFrames() { return nFrames; }
+
+	Platform::Array<WindowsPreview::Kinect::CameraSpacePoint>^ GetCurrentDepthData();
+	Windows::Storage::Streams::Buffer^ GetCurrentColorData();
+	Platform::Array<WindowsPreview::Kinect::ColorSpacePoint>^ GetCurrentUVData();
+	
+	uint64 GetCurrentCTime();
+	uint64 GetCurrentDTime();
+	
+	Platform::Array<WindowsPreview::Kinect::CameraSpacePoint>^ GetHands() { handUnread = false; return hands; }
+
 	Windows::Foundation::Collections::IVectorView<WindowsPreview::Kinect::CameraSpacePoint>^ GetHDFacePoints();
-	void Catchup();
 
 private:
 
 	~KinectHandler();
 
 	// Recording infrastructure
-	INT64                   startTime;
-	INT64                   lastCounter;
-	int					    nFrames;
-	double                  freq;
-	DWORD                   nNextStatusTime;
-	DWORD                   nFramesSinceUpdate;
-	bool                    saveScreenshot;
 	bool					depthUnread;
 	bool					colorUnread;
 	bool					handUnread;
-	FILE*					DepthOutFile;
-	FILE*					UVOutFile;
-
-	int nextDFrameToRead;
-	int nextCFrameToRead;
+	
 	int nCFrames;
 	int nDFrames;
+	
 	Platform::Array<Windows::Foundation::TimeSpan>^ dTimes;
 	Platform::Array<Windows::Foundation::TimeSpan>^ cTimes;
 
-	int m_latestDFrame;
-	int m_latestCFrame;
+	int latestDFrame;
+	int latestCFrame;
 
-	// Current Kinect
-	WindowsPreview::Kinect::KinectSensor^ m_kinectSensor;
+	// Primary Kinect object
+	WindowsPreview::Kinect::KinectSensor^ kinectSensor;
 
 	WindowsPreview::Kinect::DepthFrameSource^ depthFrameSource;
 	WindowsPreview::Kinect::DepthFrameReader^ depthFrameReader;
@@ -114,37 +102,46 @@ private:
 	/// <summary>
 	/// The currently tracked body
 	/// </summary>
-	WindowsPreview::Kinect::Body^ m_currentTrackedBody;
+	WindowsPreview::Kinect::Body^ currentTrackedBody;
 
 	/// <summary>
 	/// The currently tracked body Id
 	/// </summary>
-	UINT64 m_currentTrackingId;
+	UINT64 currentTrackingId;
 
 	// Coordinate mapper
 	WindowsPreview::Kinect::CoordinateMapper^	coordinateMapper;
 
-	// storage for depth data
-	Windows::Storage::Streams::Buffer^ pDepthBuffer;
-	Platform::Array<WindowsPreview::Kinect::CameraSpacePoint>^ m_cameraSpacePoints;
-	Platform::Array<WindowsPreview::Kinect::ColorSpacePoint>^ m_colorSpacePoints;
-	Platform::Array<WindowsPreview::Kinect::DepthSpacePoint>^ depthSpacePoints;
-	Platform::Array<uint16>^ m_depthData;
-	Windows::Storage::Streams::Buffer^ m_colorBuffer;
+	/// <summary>
+	/// Pre-allocated container for incoming depth data.
+	/// </summary>
+	Platform::Array<uint16>^ depthFrameContainer;
 
-	// holding onto data until it's written
-	Platform::Collections::Vector< Platform::Object^ >^ m_cspCache;
-	Platform::Collections::Vector< Platform::Object^ >^ m_colorBufferCache;
-	Platform::Collections::Vector< Platform::Object^ >^ m_depthDataCache;
-	
+	/// <summary>
+	/// Pre-allocated container for incoming color data.
+	/// </summary>
+	Windows::Storage::Streams::Buffer^ colorFrameContainer;
+
+	/// <summary>
+	/// Up-to-date X, Y, Z points in meters per frame
+	/// These are erased/updated with every new frame that comes in at 30fps (target)
+	/// </summary>
+	Platform::Array<WindowsPreview::Kinect::CameraSpacePoint>^ cameraSpacePoints;
+
+	/// <summary>
+	/// Up-to-date mapping of depth points to their corresponding pixel in the color capture
+	/// These are erased/updated with every new frame that comes in at 30fps (target)
+	/// </summary>
+	Platform::Array<WindowsPreview::Kinect::ColorSpacePoint>^ colorSpacePoints;
+
 	Platform::Collections::Vector<WindowsPreview::Kinect::Body ^>^ bodies;
 	Platform::Array<WindowsPreview::Kinect::CameraSpacePoint>^ hands;
 
+	void MultiSource_FrameArrived(WindowsPreview::Kinect::MultiSourceFrameReader^ sender, WindowsPreview::Kinect::MultiSourceFrameArrivedEventArgs^ e);
 	void DepthReader_FrameArrived(WindowsPreview::Kinect::DepthFrameReader^ sender, WindowsPreview::Kinect::DepthFrameArrivedEventArgs^ e);
 	void ColorReader_FrameArrived(WindowsPreview::Kinect::ColorFrameReader^ sender, WindowsPreview::Kinect::ColorFrameArrivedEventArgs^ e);
 	void BodyReader_FrameArrived(WindowsPreview::Kinect::BodyFrameReader^ sender, WindowsPreview::Kinect::BodyFrameArrivedEventArgs^ e);
 	void HDFaceReader_FrameArrived(HighDefinitionFaceFrameReader^ sender, HighDefinitionFaceFrameArrivedEventArgs^ e);
-	void MultiSource_FrameArrived(WindowsPreview::Kinect::MultiSourceFrameReader^ sender, WindowsPreview::Kinect::MultiSourceFrameArrivedEventArgs^ e);
 
 	WindowsPreview::Kinect::Body^ KinectHandler::FindBodyWithTrackingId(UINT64 trackingId);
 	WindowsPreview::Kinect::Body^ KinectHandler::FindClosestBody();

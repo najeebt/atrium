@@ -6,17 +6,10 @@
 using namespace Windows::System;
 
 KinectHandler::KinectHandler() :
-startTime(0),
-lastCounter(0),
-nFramesSinceUpdate(0),
-nFrames(1),
-freq(0),
-nNextStatusTime(0),
-saveScreenshot(false),
 depthUnread(false),
 colorUnread(false),
 handUnread(false),
-m_kinectSensor(),
+kinectSensor(),
 depthFrameReader(),
 depthFrameSource(),
 colorFrameReader(),
@@ -28,135 +21,122 @@ HDFaceFrameSource(),
 coordinateMapper(),
 bodies(),
 hands(),
-DepthOutFile(NULL),
-UVOutFile(NULL),
-nextDFrameToRead(0),
-nextCFrameToRead(0),
 nDFrames(0),
 nCFrames(0)
 {
 
 	errno_t err;
 
-	m_cameraSpacePoints = ref new Platform::Array<WindowsPreview::Kinect::CameraSpacePoint>(DEPTH_PIXEL_COUNT);
-	m_colorSpacePoints = ref new Platform::Array<WindowsPreview::Kinect::ColorSpacePoint>(DEPTH_PIXEL_COUNT);
-	m_depthData = ref new Platform::Array<uint16>(DEPTH_PIXEL_COUNT);
-
-	m_colorBuffer = ref new Windows::Storage::Streams::Buffer(1920 * 1080 * sizeof(unsigned char) * 4);
-
-	m_cspCache = ref new Platform::Collections::Vector<Platform::Object^>(HANDLER_BUFFER);
-	m_colorBufferCache = ref new Platform::Collections::Vector<Platform::Object^>(HANDLER_BUFFER);
-	m_depthDataCache = ref new Platform::Collections::Vector<Platform::Object^>(HANDLER_BUFFER);
-
-	// allocate your buffers and use the allocated slots
-	for (int i = 0; i < HANDLER_BUFFER; ++i) {
-		Windows::Storage::Streams::Buffer^ colorBuffer = ref new Windows::Storage::Streams::Buffer(1920 * 1080 * sizeof(unsigned char) * 4);
-		m_colorBufferCache->SetAt(i, colorBuffer);
-
-		Platform::Array<WindowsPreview::Kinect::CameraSpacePoint>^ cameraSpacePts = ref new Platform::Array<WindowsPreview::Kinect::CameraSpacePoint>(DEPTH_PIXEL_COUNT);
-		m_cspCache->SetAt(i, cameraSpacePts);
-
-		Platform::Array<uint16>^ depthData = ref new Platform::Array<uint16>(DEPTH_PIXEL_COUNT);
-		m_depthDataCache->SetAt(i, depthData);
-	}
+	// allocating containers -- these get updated per frame
+	cameraSpacePoints = ref new Platform::Array<WindowsPreview::Kinect::CameraSpacePoint>(DEPTH_PIXEL_COUNT);
+	colorSpacePoints = ref new Platform::Array<WindowsPreview::Kinect::ColorSpacePoint>(DEPTH_PIXEL_COUNT);
+	depthFrameContainer = ref new Platform::Array<uint16>(DEPTH_PIXEL_COUNT);
+	colorFrameContainer = ref new Windows::Storage::Streams::Buffer(COLOR_PIXEL_COUNT * sizeof(unsigned char) * 4);
 
 	dTimes = ref new Platform::Array<Windows::Foundation::TimeSpan>(HANDLER_BUFFER);
 	cTimes = ref new Platform::Array<Windows::Foundation::TimeSpan>(HANDLER_BUFFER);
 
 	hands = ref new Platform::Array<WindowsPreview::Kinect::CameraSpacePoint>(2);
-
-	depthSpacePoints = ref new Platform::Array<WindowsPreview::Kinect::DepthSpacePoint>(DEPTH_PIXEL_COUNT);
-	for (int i = 0; i < KINECT_DEPTH_HEIGHT; ++i) {
-		for (int j = 0; j < KINECT_DEPTH_WIDTH; ++j) {
-			depthSpacePoints[i * KINECT_DEPTH_WIDTH + j].X = i;
-			depthSpacePoints[i * KINECT_DEPTH_WIDTH + j].Y = j;
-		}
-	}
-
 }
 
 KinectHandler::~KinectHandler()
 {
 	// close the Kinect Sensor
-	if (m_kinectSensor)
+	if (kinectSensor)
 	{
-		m_kinectSensor->Close();
+		kinectSensor->Close();
 	}
 }
 
 Windows::Storage::Streams::Buffer^ KinectHandler::GetCurrentColorData()
 {
 	colorUnread = false;
-	return m_colorBuffer;
+	return colorFrameContainer;
 }
 
 Platform::Array<WindowsPreview::Kinect::CameraSpacePoint>^ KinectHandler::GetCurrentDepthData()
 {
 	depthUnread = false;
-	return m_cameraSpacePoints;
-}
-
-uint64 KinectHandler::GetDTime()
-{
-	return dTimes->get(nextDFrameToRead).Duration;
-}
-
-uint64 KinectHandler::GetCTime()
-{
-	return cTimes->get(nextCFrameToRead).Duration;
+	return cameraSpacePoints;
 }
 
 uint64 KinectHandler::GetCurrentCTime()
 {
-	return cTimes->get(m_latestCFrame).Duration;
+	return cTimes->get(latestCFrame).Duration;
 }
 
 uint64 KinectHandler::GetCurrentDTime()
 {
-	return dTimes->get(m_latestDFrame).Duration;
-}
-
-void KinectHandler::Catchup() {
-	if ((m_latestDFrame % HANDLER_BUFFER) - nextDFrameToRead > 3) {
-		nextDFrameToRead = (m_latestDFrame - 1) % HANDLER_BUFFER;
-	}
-
-	if ((m_latestCFrame % HANDLER_BUFFER) - nextCFrameToRead > 3) {
-		nextDFrameToRead = (m_latestCFrame - 1) % HANDLER_BUFFER;
-	}
-}
-
-Platform::Array<WindowsPreview::Kinect::CameraSpacePoint>^ KinectHandler::GetBufferedDepthData()
-{
-	depthUnread = false;
-	Platform::Array<WindowsPreview::Kinect::CameraSpacePoint>^ ret = safe_cast<Platform::Array<WindowsPreview::Kinect::CameraSpacePoint>^>(m_cspCache->GetAt(nextDFrameToRead));
-	nextDFrameToRead++;
-	nextDFrameToRead %= HANDLER_BUFFER;
-	return ret;
-}
-
-Windows::Storage::Streams::Buffer^ KinectHandler::GetBufferedColorData()
-{
-	colorUnread = false;
-	Windows::Storage::Streams::Buffer^ ret = safe_cast<Windows::Storage::Streams::Buffer^>(m_colorBufferCache->GetAt(nextCFrameToRead));
-	nextCFrameToRead++;
-	nextCFrameToRead %= HANDLER_BUFFER;
-	return ret;
-}
-
-Platform::Array<WindowsPreview::Kinect::ColorSpacePoint>^ KinectHandler::GetBufferedUVData()
-{
-	Platform::Array<uint16>^ depthData = safe_cast<Platform::Array<uint16>^>(m_depthDataCache->GetAt(nextDFrameToRead));
-	coordinateMapper->MapDepthFrameToColorSpace(depthData, m_colorSpacePoints);
-	return m_colorSpacePoints;
+	return dTimes->get(latestDFrame).Duration;
 }
 
 Platform::Array<WindowsPreview::Kinect::ColorSpacePoint>^ KinectHandler::GetCurrentUVData()
 {
-	coordinateMapper->MapDepthFrameToColorSpace(m_depthData, m_colorSpacePoints);
-	return m_colorSpacePoints;
+	coordinateMapper->MapDepthFrameToColorSpace(depthFrameContainer, colorSpacePoints);
+	return colorSpacePoints;
 }
 
+/// <summary>
+/// The big kahuna of incoming Kinect data handling, per-frame
+/// </summary>
+void KinectHandler::MultiSource_FrameArrived(WindowsPreview::Kinect::MultiSourceFrameReader^ sender, WindowsPreview::Kinect::MultiSourceFrameArrivedEventArgs^ e)
+{
+	auto multiRef = e->FrameReference;
+
+	{
+		auto frame = multiRef->AcquireFrame();
+
+		if (frame == nullptr) return;
+
+		auto pColorFrame = frame->ColorFrameReference->AcquireFrame();
+
+		if (pColorFrame != nullptr)
+		{
+			auto nTime = pColorFrame->RelativeTime;
+
+			// each frame comes with a frame description which contains metadata about the frame size,
+			// but Atrium is, for the moment, optimized for the Kinect sensor v2.
+			// In example Kinect code, you would read metadata on frame dimensions here.
+
+			latestCFrame = nCFrames % HANDLER_BUFFER;
+
+			pColorFrame->CopyConvertedFrameDataToBuffer(colorFrameContainer, WindowsPreview::Kinect::ColorImageFormat::Rgba);
+
+			cTimes->set(latestCFrame, nTime);
+
+			nCFrames++;
+			colorUnread = true;
+		}
+
+		auto pDepthFrame = frame->DepthFrameReference->AcquireFrame();
+
+		if (pDepthFrame != nullptr) {
+
+			auto nTime = pDepthFrame->RelativeTime;
+
+			// each frame comes with a frame description which contains metadata about the frame size,
+			// but Atrium is, for the moment, optimized for the Kinect sensor v2.
+			// In example Kinect code, you would read metadata on frame dimensions here.
+
+			latestDFrame = nDFrames % HANDLER_BUFFER;
+
+			// Copy depth data
+			pDepthFrame->CopyFrameDataToArray(depthFrameContainer);
+			coordinateMapper->MapDepthFrameToCameraSpace(depthFrameContainer, cameraSpacePoints);
+
+			dTimes->set(latestDFrame, nTime);
+
+			nDFrames++;
+			depthUnread = true;
+		}
+
+		return;
+	}
+}
+
+/// <summary>
+/// Isolated depth event handler. Legacy. MultiSource_FrameArrived above now does this work.
+/// </summary>
 void KinectHandler::DepthReader_FrameArrived(Kinect::DepthFrameReader^ sender, Kinect::DepthFrameArrivedEventArgs^ e)
 {
 	if (depthFrameReader == nullptr)
@@ -170,30 +150,17 @@ void KinectHandler::DepthReader_FrameArrived(Kinect::DepthFrameReader^ sender, K
 	{
 		auto nTime = pDepthFrame->RelativeTime;
 
-		auto pDepthFrameDescription = pDepthFrame->FrameDescription;
-		auto nDepthWidth = pDepthFrameDescription->Width;
-		auto nDepthHeight = pDepthFrameDescription->Height;
-		auto nDepthMinReliableDistance = pDepthFrame->DepthMinReliableDistance;
-		auto nDepthMaxReliableDistance = pDepthFrame->DepthMaxReliableDistance;
+		// each frame comes with a frame description which contains metadata about the frame size,
+		// but Atrium is, for the moment, optimized for the Kinect sensor v2.
+		// In example Kinect code, you would see that metadata getting pulled from the frame here.
 
-		m_latestDFrame = nDFrames % HANDLER_BUFFER;
+		latestDFrame = nDFrames % HANDLER_BUFFER;
 
 		// Copy depth data
-		Platform::Array<WindowsPreview::Kinect::CameraSpacePoint>^ cameraSpacePts = safe_cast<Platform::Array<WindowsPreview::Kinect::CameraSpacePoint>^>(m_cspCache->GetAt(m_latestDFrame));
-		Platform::Array<uint16>^ depthData = safe_cast<Platform::Array<uint16>^>(m_depthDataCache->GetAt(m_latestDFrame));
+		pDepthFrame->CopyFrameDataToArray(depthFrameContainer);
+		coordinateMapper->MapDepthFrameToCameraSpace(depthFrameContainer, cameraSpacePoints);
 
-		pDepthFrame->CopyFrameDataToArray(depthData);
-		coordinateMapper->MapDepthFrameToCameraSpace(depthData, cameraSpacePts);
-
-		m_cameraSpacePoints = cameraSpacePts;
-		m_depthData = depthData;
-
-		dTimes->set(m_latestDFrame, nTime);
-
-		//if ((nDFrames % HANDLER_BUFFER) > BUFFER_MAX_SIZE) {
-		//	m_cspCache->SetAt(nDFrames % HANDLER_BUFFER - BUFFER_MAX_SIZE, nullptr);
-		//	m_depthDataCache->SetAt(nDFrames % HANDLER_BUFFER - BUFFER_MAX_SIZE, nullptr);
-		//}
+		dTimes->set(latestDFrame, nTime);
 
 		nDFrames++;
 		depthUnread = true;
@@ -202,6 +169,9 @@ void KinectHandler::DepthReader_FrameArrived(Kinect::DepthFrameReader^ sender, K
 	return;
 }
 
+/// <summary>
+/// Isolated depth event handler. Legacy. MultiSource_FrameArrived above now does this work.
+/// </summary>
 void KinectHandler::ColorReader_FrameArrived(Kinect::ColorFrameReader^ sender, Kinect::ColorFrameArrivedEventArgs^ e)
 {
 
@@ -212,44 +182,21 @@ void KinectHandler::ColorReader_FrameArrived(Kinect::ColorFrameReader^ sender, K
 
 		auto nTime = pColorFrame->RelativeTime;
 
-		// get color frame data
-		auto pColorFrameDescription = pColorFrame->FrameDescription;
-		auto nColorWidth = pColorFrameDescription->Width;
-		auto nColorHeight = pColorFrameDescription->Height;
-		auto imageFormat = pColorFrame->RawColorImageFormat;
+		// each frame comes with a frame description which contains metadata about the frame size,
+		// but Atrium is, for the moment, optimized for the Kinect sensor v2.
+		// In example Kinect code, you would see that metadata getting pulled from the frame here.
 
-		m_latestCFrame = nCFrames % HANDLER_BUFFER;
+		latestCFrame = nCFrames % HANDLER_BUFFER;
 
-		//Windows::Storage::Streams::Buffer^ colorBuffer = ref new Windows::Storage::Streams::Buffer(1920 * 1080 * sizeof(unsigned char) * 4);
-		Windows::Storage::Streams::Buffer^ colorBuffer = safe_cast<Windows::Storage::Streams::Buffer^>(m_colorBufferCache->GetAt(m_latestCFrame));
-		pColorFrame->CopyConvertedFrameDataToBuffer(colorBuffer, WindowsPreview::Kinect::ColorImageFormat::Rgba);
+		pColorFrame->CopyConvertedFrameDataToBuffer(colorFrameContainer, WindowsPreview::Kinect::ColorImageFormat::Rgba);
 
-		m_colorBuffer = colorBuffer;
-
-		//m_colorBufferCache->SetAt(m_latestCFrame, colorBuffer);
-		cTimes->set(m_latestCFrame, nTime);
-
-		//if ((nCFrames % HANDLER_BUFFER) > BUFFER_MAX_SIZE) {
-		//	m_colorBufferCache->SetAt(nCFrames % HANDLER_BUFFER - BUFFER_MAX_SIZE, nullptr);
-		//}
+		cTimes->set(latestCFrame, nTime);
 
 		nCFrames++;
 		colorUnread = true;
 	}
 
 	return;
-}
-
-/// <summary>
-/// Returns the length of a vector from origin
-/// </summary>
-double KinectHandler::VectorLength(WindowsPreview::Kinect::CameraSpacePoint point)
-{
-	auto result = pow(point.X, 2) + pow(point.Y, 2) + pow(point.Z, 2);
-
-	result = sqrt(result);
-
-	return result;
 }
 
 /// <summary>
@@ -278,6 +225,18 @@ WindowsPreview::Kinect::Body^ KinectHandler::FindClosestBody()
 			}
 		}
 	}
+
+	return result;
+}
+
+/// <summary>
+/// Returns the length of a vector from origin
+/// </summary>
+double KinectHandler::VectorLength(WindowsPreview::Kinect::CameraSpacePoint point)
+{
+	auto result = pow(point.X, 2) + pow(point.Y, 2) + pow(point.Z, 2);
+
+	result = sqrt(result);
 
 	return result;
 }
@@ -329,32 +288,32 @@ void KinectHandler::BodyReader_FrameArrived(Kinect::BodyFrameReader^ sender, Kin
 	}
 
 	// Do we still see the person we're tracking?
-	if (m_currentTrackedBody != nullptr)
+	if (currentTrackedBody != nullptr)
 	{
-		m_currentTrackedBody = FindBodyWithTrackingId(m_currentTrackingId);
+		currentTrackedBody = FindBodyWithTrackingId(currentTrackingId);
 
-		if (m_currentTrackedBody != nullptr)
+		if (currentTrackedBody != nullptr)
 		{
 			// We still see the person we're tracking, make no change.
 			return;
 		}
 	}
 
-	WindowsPreview::Kinect::Body^ selectedBody = FindClosestBody();
+	auto selectedBody = FindClosestBody();
 
 	if (selectedBody == nullptr)
 	{
-		m_currentTrackedBody = nullptr;
-		m_currentTrackingId = 0;
+		currentTrackedBody = nullptr;
+		currentTrackingId = 0;
 
 		return;
 	}
 
-	m_currentTrackedBody = selectedBody;
+	currentTrackedBody = selectedBody;
 	auto trackingID = selectedBody->TrackingId;;
-	m_currentTrackingId = trackingID;
+	currentTrackingId = trackingID;
 
-	HDFaceFrameSource->TrackingId = m_currentTrackingId;
+	HDFaceFrameSource->TrackingId = currentTrackingId;
 
 	return;
 }
@@ -378,86 +337,6 @@ void KinectHandler::HDFaceReader_FrameArrived(HighDefinitionFaceFrameReader^ sen
 	}
 }
 
-void KinectHandler::MultiSource_FrameArrived(WindowsPreview::Kinect::MultiSourceFrameReader^ sender, WindowsPreview::Kinect::MultiSourceFrameArrivedEventArgs^ e)
-{
-	auto multiRef = e->FrameReference;
-
-	{
-		auto frame = multiRef->AcquireFrame();
-
-		if (frame == nullptr) return;
-
-		auto pColorFrame = frame->ColorFrameReference->AcquireFrame();
-
-		if (pColorFrame != nullptr)
-		{
-			auto nTime = pColorFrame->RelativeTime;
-
-			// get color frame data
-			auto pColorFrameDescription = pColorFrame->FrameDescription;
-			auto nColorWidth = pColorFrameDescription->Width;
-			auto nColorHeight = pColorFrameDescription->Height;
-			auto imageFormat = pColorFrame->RawColorImageFormat;
-
-			m_latestCFrame = nCFrames % HANDLER_BUFFER;
-
-			//Windows::Storage::Streams::Buffer^ colorBuffer = ref new Windows::Storage::Streams::Buffer(1920 * 1080 * sizeof(unsigned char) * 4);
-			Windows::Storage::Streams::Buffer^ colorBuffer = safe_cast<Windows::Storage::Streams::Buffer^>(m_colorBufferCache->GetAt(m_latestCFrame));
-			pColorFrame->CopyConvertedFrameDataToBuffer(colorBuffer, WindowsPreview::Kinect::ColorImageFormat::Rgba);
-
-			m_colorBuffer = colorBuffer;
-
-			//m_colorBufferCache->SetAt(m_latestCFrame, colorBuffer);
-			cTimes->set(m_latestCFrame, nTime);
-
-			//if ((nCFrames % HANDLER_BUFFER) > BUFFER_MAX_SIZE) {
-			//	m_colorBufferCache->SetAt(nCFrames % HANDLER_BUFFER - BUFFER_MAX_SIZE, nullptr);
-			//}
-
-			nCFrames++;
-			colorUnread = true;
-		}
-
-		auto pDepthFrame = frame->DepthFrameReference->AcquireFrame();
-
-		if (pDepthFrame != nullptr) {
-
-			auto nTime = pDepthFrame->RelativeTime;
-
-			auto pDepthFrameDescription = pDepthFrame->FrameDescription;
-			auto nDepthWidth = pDepthFrameDescription->Width;
-			auto nDepthHeight = pDepthFrameDescription->Height;
-			auto nDepthMinReliableDistance = pDepthFrame->DepthMinReliableDistance;
-			auto nDepthMaxReliableDistance = pDepthFrame->DepthMaxReliableDistance;
-
-			m_latestDFrame = nDFrames % HANDLER_BUFFER;
-
-			// Copy depth data
-			Platform::Array<WindowsPreview::Kinect::CameraSpacePoint>^ cameraSpacePts = safe_cast<Platform::Array<WindowsPreview::Kinect::CameraSpacePoint>^>(m_cspCache->GetAt(m_latestDFrame));
-			Platform::Array<uint16>^ depthData = safe_cast<Platform::Array<uint16>^>(m_depthDataCache->GetAt(m_latestDFrame));
-
-			pDepthFrame->CopyFrameDataToArray(depthData);
-			coordinateMapper->MapDepthFrameToCameraSpace(depthData, cameraSpacePts);
-
-			m_cameraSpacePoints = cameraSpacePts;
-			m_depthData = depthData;
-
-			dTimes->set(m_latestDFrame, nTime);
-
-			//if ((nDFrames % HANDLER_BUFFER) > BUFFER_MAX_SIZE) {
-			//	m_cspCache->SetAt(nDFrames % HANDLER_BUFFER - BUFFER_MAX_SIZE, nullptr);
-			//	m_depthDataCache->SetAt(nDFrames % HANDLER_BUFFER - BUFFER_MAX_SIZE, nullptr);
-			//}
-
-			nDFrames++;
-			depthUnread = true;
-		}
-
-		return;
-	}
-}
-
-
 Windows::Foundation::Collections::IVectorView<WindowsPreview::Kinect::CameraSpacePoint>^ KinectHandler::GetHDFacePoints()
 {
 	return currentFaceModel->CalculateVerticesForAlignment(this->currentFaceAlignment);
@@ -470,38 +349,21 @@ Windows::Foundation::Collections::IVectorView<WindowsPreview::Kinect::CameraSpac
 void KinectHandler::InitializeDefaultSensor()
 {
 
-	m_kinectSensor = Kinect::KinectSensor::GetDefault();
+	kinectSensor = Kinect::KinectSensor::GetDefault();
 
-	if (!m_kinectSensor)
+	if (!kinectSensor)
 	{
 		return;
 	}
 
-	//depthFrameSource = m_kinectSensor->DepthFrameSource;
-	//depthFrameReader = depthFrameSource->OpenReader();
-	//depthFrameReader->FrameArrived += ref new TypedEventHandler<WindowsPreview::Kinect::DepthFrameReader ^, WindowsPreview::Kinect::DepthFrameArrivedEventArgs ^>(this, &KinectHandler::DepthReader_FrameArrived);
-
-	//colorFrameSource = m_kinectSensor->ColorFrameSource;
-	//colorFrameReader = colorFrameSource->OpenReader();
-	//colorFrameReader->FrameArrived += ref new Windows::Foundation::TypedEventHandler<WindowsPreview::Kinect::ColorFrameReader ^, WindowsPreview::Kinect::ColorFrameArrivedEventArgs ^>(this, &KinectHandler::ColorReader_FrameArrived);
-
-	multiSourceFrameReader = m_kinectSensor->OpenMultiSourceFrameReader(WindowsPreview::Kinect::FrameSourceTypes::Depth | WindowsPreview::Kinect::FrameSourceTypes::Color);
+	multiSourceFrameReader = kinectSensor->OpenMultiSourceFrameReader(WindowsPreview::Kinect::FrameSourceTypes::Depth | WindowsPreview::Kinect::FrameSourceTypes::Color);
 	multiSourceFrameReader->MultiSourceFrameArrived += ref new Windows::Foundation::TypedEventHandler<WindowsPreview::Kinect::MultiSourceFrameReader^, WindowsPreview::Kinect::MultiSourceFrameArrivedEventArgs ^>(this, &KinectHandler::MultiSource_FrameArrived);
-
-	//bodyFrameSource = m_kinectSensor->BodyFrameSource;
-	//bodies = ref new Platform::Collections::Vector<WindowsPreview::Kinect::Body^>(bodyFrameSource->BodyCount);
-	//bodyFrameReader = bodyFrameSource->OpenReader();
-	//bodyFrameReader->FrameArrived += ref new TypedEventHandler<WindowsPreview::Kinect::BodyFrameReader ^, WindowsPreview::Kinect::BodyFrameArrivedEventArgs ^>(this, &KinectHandler::BodyReader_FrameArrived);
-
-	//HDFaceFrameSource = ref new HighDefinitionFaceFrameSource(m_kinectSensor);
-	//HDFaceFrameReader = HDFaceFrameSource->OpenReader();
-	//HDFaceFrameReader->FrameArrived += ref new TypedEventHandler<HighDefinitionFaceFrameReader^, HighDefinitionFaceFrameArrivedEventArgs^>(this, &KinectHandler::HDFaceReader_FrameArrived);
 
 	currentFaceModel = ref new FaceModel();
 	currentFaceAlignment = ref new FaceAlignment();
 	cachedFaceIndices = FaceModel::TriangleIndices;
 
-	coordinateMapper = m_kinectSensor->CoordinateMapper;
+	coordinateMapper = kinectSensor->CoordinateMapper;
 
-	m_kinectSensor->Open();
+	kinectSensor->Open();
 }

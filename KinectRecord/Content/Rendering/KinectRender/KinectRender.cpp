@@ -657,9 +657,9 @@ void KinectRender::CreateDeviceDependentResources()
 
 		// Start with a gradient colored plane of points.
 		if (m_colorBufferData.empty()) {
-			for (int i = 0; i < 424; ++i) {
-				for (int j = 0; j < 512; ++j) {
-					m_colorBufferData.push_back({ XMFLOAT3(j/512.0, i/424.0, 0.0f) });
+			for (int i = 0; i < KINECT_DEPTH_HEIGHT; ++i) {
+				for (int j = 0; j < KINECT_DEPTH_WIDTH; ++j) {
+					m_colorBufferData.push_back({ XMFLOAT3(j/KINECT_DEPTH_WIDTH, i/KINECT_DEPTH_HEIGHT, 0.0f) });
 				}
 			}
 		}
@@ -1008,9 +1008,9 @@ void KinectRender::ResetColorBuffer()
 {
 	// Start with a gradient colored plane of points.
 	m_colorBufferData.clear();
-	for (int i = 0; i < 424; ++i) {
-		for (int j = 0; j < 512; ++j) {
-			m_colorBufferData.push_back({ XMFLOAT3(j / 512.0, i / 424.0, 0.0f) });
+	for (int i = 0; i < KINECT_DEPTH_HEIGHT; ++i) {
+		for (int j = 0; j < KINECT_DEPTH_WIDTH; ++j) {
+			m_colorBufferData.push_back({ XMFLOAT3(j / KINECT_DEPTH_WIDTH, i / KINECT_DEPTH_HEIGHT, 0.0f) });
 		}
 	}
 	D3D11_BOX box{};

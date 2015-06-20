@@ -96,7 +96,6 @@ namespace KinectRecord
 
 		int CalculateFrameNumber(uint64 startTime, uint64 currentTime);
 
-		uint64 m_recStartTime;
 
 		Platform::Array<byte>^ m_pixelStore;
 

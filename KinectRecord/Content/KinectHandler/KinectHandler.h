@@ -37,6 +37,8 @@ public:
 	bool HasUnreadDepthData() { return depthUnread; }
 	bool HasUnreadColorData() { return colorUnread; }
 	bool HasUnreadHandData() { return handUnread; }
+	
+	void SetStreamColor(bool newStreamColor);
 
 	Platform::Array<WindowsPreview::Kinect::CameraSpacePoint>^ GetCurrentDepthData();
 	Windows::Storage::Streams::Buffer^ GetCurrentColorData();
@@ -57,6 +59,8 @@ private:
 	bool					depthUnread;
 	bool					colorUnread;
 	bool					handUnread;
+
+	bool streamColor;
 	
 	int nCFrames;
 	int nDFrames;

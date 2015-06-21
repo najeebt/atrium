@@ -9,6 +9,7 @@ KinectHandler::KinectHandler() :
 depthUnread(false),
 colorUnread(false),
 handUnread(false),
+streamColor(true),
 kinectSensor(),
 depthFrameReader(),
 depthFrameSource(),
@@ -76,6 +77,11 @@ Platform::Array<WindowsPreview::Kinect::ColorSpacePoint>^ KinectHandler::GetCurr
 	return colorSpacePoints;
 }
 
+void KinectHandler::SetStreamColor(bool newStreamColor)
+{
+	streamColor = newStreamColor;
+}
+
 /// <summary>
 /// The big kahuna of incoming Kinect data handling, per-frame
 /// </summary>
@@ -90,7 +96,7 @@ void KinectHandler::MultiSource_FrameArrived(WindowsPreview::Kinect::MultiSource
 
 		auto pColorFrame = frame->ColorFrameReference->AcquireFrame();
 
-		if (pColorFrame != nullptr)
+		if (pColorFrame != nullptr && streamColor)
 		{
 			auto nTime = pColorFrame->RelativeTime;
 

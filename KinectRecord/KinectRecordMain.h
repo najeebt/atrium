@@ -47,41 +47,42 @@ namespace KinectRecord
 		virtual void OnDeviceRestored();
 
 		// kinect input handler
-		KinectHandler^ m_kinectHandler;
+		KinectHandler^ kinectHandler;
 
 		// state management (should probably be single-variable state enum)
-		bool m_isRecording;
-		bool m_isPlayingBack;
-		bool m_isExporting;
+		bool isRecording;
+		bool isPlayingBack;
+		bool isExporting;
 
-		bool m_streamColor;
+		bool streamColor;
 
-		int m_currentFrame;
-		int m_currentTake;
-		int m_currentExportFrame;
+		int currentFrame;
+		int currentTake;
+		int currentExportFrame;
+		uint64 recStartTime;
 
-		int m_lDFrame;
-		int m_lCFrame;
+		int lDFrame;
+		int lCFrame;
 
 		// playback buffer stores MAX_BUFFER_FRAMES frames of point data
-		Platform::Collections::Vector< Platform::Object^ >^ m_playbackBuffer;
-		Platform::Collections::Vector< Platform::Object^ >^ m_saveToDiskBuffer;
+		Platform::Collections::Vector< Platform::Object^ >^ playbackBuffer;
+		Platform::Collections::Vector< Platform::Object^ >^ saveToDiskBuffer;
 
 		//// holding onto data until it's written
-		Platform::Collections::Vector< Platform::Object^ >^ m_depthDataCache;
-		Platform::Collections::Vector< Platform::Object^ >^ m_colorBufferCache;
+		Platform::Collections::Vector< Platform::Object^ >^ depthDataCache;
+		Platform::Collections::Vector< Platform::Object^ >^ colorBufferCache;
 
 		// winrt file management
-		Collections::IVectorView<Windows::Storage::StorageFile^>^ m_recordFiles;
-		Collections::IVectorView<Windows::Storage::StorageFile^>^ m_exportFiles;
-		Windows::Storage::StorageFolder^ m_sessionFolder;
-		Windows::Storage::StorageFolder^ m_takeFolder;
-		Windows::Storage::StorageFolder^ m_exportFromFolder;
-		Windows::Storage::StorageFolder^ m_exportToFolder;
-		std::vector<Windows::Storage::StorageFile^> m_shaderFiles;
+		Collections::IVectorView<Windows::Storage::StorageFile^>^ recordFiles;
+		Collections::IVectorView<Windows::Storage::StorageFile^>^ exportFiles;
+		Windows::Storage::StorageFolder^ sessionFolder;
+		Windows::Storage::StorageFolder^ takeFolder;
+		Windows::Storage::StorageFolder^ exportFromFolder;
+		Windows::Storage::StorageFolder^ exportToFolder;
+		std::vector<Windows::Storage::StorageFile^> shaderFiles;
 
 		// tracking for recompiling shaders
-		std::vector<Windows::Storage::Search::StorageFileQueryResult^> m_shaderQueryResult;
+		std::vector<Windows::Storage::Search::StorageFileQueryResult^> shaderQueryResult;
 	
 	private:
 		void ProcessInput();
@@ -89,15 +90,15 @@ namespace KinectRecord
 		bool Render();
 
 		void StoreFrameForWrite(const int frame, Platform::Array<WindowsPreview::Kinect::CameraSpacePoint>^ cameraSpacePoints);
-		void WriteDepthFrameToDisk(const Platform::Array<WindowsPreview::Kinect::CameraSpacePoint>^ cameraSpacePoints);
-		void WriteDepthUVFrameToDisk(int frame, Platform::Array<WindowsPreview::Kinect::CameraSpacePoint>^ cameraSpacePoints, Platform::Array<WindowsPreview::Kinect::ColorSpacePoint>^ colorSpacePoints);
+		void WriteDepthFrameToDisk(int frameIndex, int frame, Platform::Array<WindowsPreview::Kinect::CameraSpacePoint>^ cameraSpacePoints);
+		void WriteDepthUVFrameToDisk(int frameIndex, int frame, Platform::Array<WindowsPreview::Kinect::CameraSpacePoint>^ cameraSpacePoints, Platform::Array<WindowsPreview::Kinect::ColorSpacePoint>^ colorSpacePoints);
 		void WriteUVToDisk(const Platform::Array<WindowsPreview::Kinect::ColorSpacePoint>^ colorSpacePoints);
-		void WriteJpegToDisk(int frame, Windows::Storage::Streams::Buffer^ colorData);
+		void WriteJpegToDisk(int frameIndex, int frame, Windows::Storage::Streams::Buffer^ colorData);
 
 		int CalculateFrameNumber(uint64 startTime, uint64 currentTime);
 
 
-		Platform::Array<byte>^ m_pixelStore;
+		Platform::Array<byte>^ pixelStore;
 
 		// device resources.
 		std::shared_ptr<DX::DeviceResources> m_deviceResources;

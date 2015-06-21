@@ -92,7 +92,7 @@ DirectXPage::DirectXPage():
 	m_main = std::unique_ptr<KinectRecordMain>(new KinectRecordMain(m_deviceResources));
 	m_main->StartRenderLoop();
 
-	m_main->m_kinectHandler->InitializeDefaultSensor();
+	m_main->kinectHandler->InitializeDefaultSensor();
 
 }
 
@@ -239,16 +239,16 @@ void KinectRecord::DirectXPage::CheckBox_Checked(Platform::Object^ sender, Windo
 
 void KinectRecord::DirectXPage::Record(Platform::Object^ sender, Windows::UI::Xaml::RoutedEventArgs^ e)
 {
-	if (m_main->m_isRecording) {
-		m_main->m_isRecording = false;
+	if (m_main->isRecording) {
+		m_main->isRecording = false;
 		RecIndicator->Visibility = Windows::UI::Xaml::Visibility::Collapsed;
 		RecordButton->Content = "RECORD";
 	}
 	else {
-		if (m_main->m_sessionFolder != nullptr) {
-			m_main->m_isRecording = true;
+		if (m_main->sessionFolder != nullptr) {
+			m_main->isRecording = true;
 			RecIndicator->Visibility = Windows::UI::Xaml::Visibility::Visible;
-			TakeDisplay->Text = m_main->m_currentTake.ToString();
+			TakeDisplay->Text = m_main->currentTake.ToString();
 			m_main->PrepToRecord();
 			RecordButton->Content = "STOP";
 		}
@@ -281,7 +281,7 @@ void KinectRecord::DirectXPage::PickAFileButton_Click(Object^ sender, RoutedEven
 			Platform::String^ dateTime = L"ATRIUM_" + c->YearAsString() + L"_" + c->MonthAsPaddedNumericString(1) + L"_" + c->DayAsPaddedString(1) + L"_" + c->HourAsPaddedString(1) + L"_" + c->MinuteAsPaddedString(1);
 			create_task(folder->CreateFolderAsync(dateTime)).then([this](Windows::Storage::StorageFolder^ sessionFolder)
 			{
-				m_main->m_sessionFolder = sessionFolder;
+				m_main->sessionFolder = sessionFolder;
 				this->FolderDisplay->Text = sessionFolder->Name;
 			});
 		}
@@ -297,14 +297,14 @@ void KinectRecord::DirectXPage::TextBlock_SelectionChanged(Platform::Object^ sen
 
 void KinectRecord::DirectXPage::Button_Click_1(Platform::Object^ sender, Windows::UI::Xaml::RoutedEventArgs^ e)
 {
-	if (m_main->m_isPlayingBack) {
-		m_main->m_isPlayingBack = false;
+	if (m_main->isPlayingBack) {
+		m_main->isPlayingBack = false;
 		PlaybackButton->Content = "REPLAY";
 	}
 	else {
-		if (m_main->m_sessionFolder != nullptr) {
+		if (m_main->sessionFolder != nullptr) {
 			m_main->PrepToPlayback();
-			m_main->m_isPlayingBack = true;
+			m_main->isPlayingBack = true;
 			PlaybackButton->Content = "STOP";
 		}
 		else {
@@ -317,11 +317,11 @@ void KinectRecord::DirectXPage::Button_Click_1(Platform::Object^ sender, Windows
 			{
 				if (folder)
 				{
-					m_main->m_takeFolder = folder;
+					m_main->takeFolder = folder;
 					m_main->PrepToPlayback();
-					m_main->m_isPlayingBack = true;
+					m_main->isPlayingBack = true;
 					PlaybackButton->Content = "STOP";
-					TimeSlider->Maximum = m_main->m_playbackBuffer->Size;
+					TimeSlider->Maximum = m_main->playbackBuffer->Size;
 				}
 			});
 		}
@@ -352,7 +352,7 @@ void KinectRecord::DirectXPage::Button_Click_2(Platform::Object^ sender, Windows
 	{
 		if (folder)
 		{
-			m_main->m_exportFromFolder = folder;
+			m_main->exportFromFolder = folder;
 		}
 	});
 }
@@ -367,7 +367,7 @@ void KinectRecord::DirectXPage::TextBlock_SelectionChanged_2(Platform::Object^ s
 void KinectRecord::DirectXPage::Slider_ValueChanged(Platform::Object^ sender, Windows::UI::Xaml::Controls::Primitives::RangeBaseValueChangedEventArgs^ e)
 {
 	if (m_main) {
-		m_main->m_currentFrame = e->NewValue;
+		m_main->currentFrame = e->NewValue;
 	}
 }
 
@@ -390,7 +390,7 @@ void KinectRecord::DirectXPage::Button_Click_3(Platform::Object^ sender, Windows
 
 void KinectRecord::DirectXPage::SetShaderFile(Windows::Storage::StorageFile^ shaderFile, int shaderType)
 {
-	m_main->m_shaderFiles[shaderType] = shaderFile;
+	m_main->shaderFiles[shaderType] = shaderFile;
 
 	create_task(shaderFile->GetParentAsync()).then([this, shaderType](Windows::Storage::StorageFolder^ parentFolder)
 	{
@@ -398,10 +398,10 @@ void KinectRecord::DirectXPage::SetShaderFile(Windows::Storage::StorageFile^ sha
 		fileTypes->Append(".hlsl");
 
 		QueryOptions^ queryOptions = ref new QueryOptions(CommonFileQuery::OrderByName, fileTypes);
-		m_main->m_shaderQueryResult[shaderType] = parentFolder->CreateFileQueryWithOptions(queryOptions);
+		m_main->shaderQueryResult[shaderType] = parentFolder->CreateFileQueryWithOptions(queryOptions);
 
-		m_main->m_shaderQueryResult[shaderType]->ContentsChanged += ref new Windows::Foundation::TypedEventHandler<Windows::Storage::Search::IStorageQueryResultBase^, Platform::Object^>(this, &KinectRecord::DirectXPage::UpdateShaderIfChanged);
-		m_main->m_shaderQueryResult[shaderType]->GetFilesAsync();
+		m_main->shaderQueryResult[shaderType]->ContentsChanged += ref new Windows::Foundation::TypedEventHandler<Windows::Storage::Search::IStorageQueryResultBase^, Platform::Object^>(this, &KinectRecord::DirectXPage::UpdateShaderIfChanged);
+		m_main->shaderQueryResult[shaderType]->GetFilesAsync();
 
 		UpdateShaderIfChanged(nullptr, nullptr);
 	});
@@ -410,7 +410,7 @@ void KinectRecord::DirectXPage::SetShaderFile(Windows::Storage::StorageFile^ sha
 void KinectRecord::DirectXPage::UpdateShaderIfChanged(IStorageQueryResultBase^ sender, Platform::Object^ args)
 {
 	for (int i = 0; i < 3; ++i) {
-		Windows::Storage::StorageFile^ shaderFile = m_main->m_shaderFiles[i];
+		Windows::Storage::StorageFile^ shaderFile = m_main->shaderFiles[i];
 		if (shaderFile != nullptr) {
 			create_task(Windows::Storage::FileIO::ReadTextAsync(shaderFile)).then([this, i](Platform::String^ shaderText)
 			{
@@ -464,7 +464,7 @@ void KinectRecord::DirectXPage::Button_Click_6(Platform::Object^ sender, Windows
 	{
 		if (folder)
 		{
-			m_main->m_exportToFolder = folder;
+			m_main->exportToFolder = folder;
 			m_main->ExportTakeToObj();
 		}
 	});

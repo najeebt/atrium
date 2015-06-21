@@ -16,13 +16,13 @@ using namespace Concurrency;
 // Loads and initializes application assets when the application is loaded.
 KinectRecordMain::KinectRecordMain(const std::shared_ptr<DX::DeviceResources>& deviceResources) :
 m_deviceResources(deviceResources),
-m_isRecording(false),
-m_isPlayingBack(false),
-m_streamColor(true),
-m_currentFrame(1),
-m_currentTake(1),
-m_shaderFiles(3),
-m_shaderQueryResult(3),
+isRecording(false),
+isPlayingBack(false),
+streamColor(true),
+currentFrame(1),
+currentTake(1),
+shaderFiles(3),
+shaderQueryResult(3),
 m_pointerLocationX(0.0f)
 {
 	// Register to be notified if the Device is lost or recreated
@@ -33,11 +33,11 @@ m_pointerLocationX(0.0f)
 	m_fpsTextRenderer = std::unique_ptr<SampleFpsTextRenderer>(new SampleFpsTextRenderer(m_deviceResources));
 
 	// Kinect input/playback classes
-	m_kinectHandler = ref new KinectHandler();
-	m_playbackBuffer = ref new Platform::Collections::Vector< Platform::Object^ >();
+	kinectHandler = ref new KinectHandler();
+	playbackBuffer = ref new Platform::Collections::Vector< Platform::Object^ >();
 
-	m_depthDataCache = ref new Platform::Collections::Vector<Platform::Object^>(500);
-	m_colorBufferCache = ref new Platform::Collections::Vector<Platform::Object^>(500);
+	depthDataCache = ref new Platform::Collections::Vector<Platform::Object^>(500);
+	colorBufferCache = ref new Platform::Collections::Vector<Platform::Object^>(500);
 
 	//for (int i = 0; i < 500; ++i) {
 	//	auto pixelStore = ref new Platform::Array<byte>(1920 * 1080 * 4);
@@ -97,44 +97,45 @@ void KinectRecordMain::StopRenderLoop()
 void KinectRecordMain::PrepToRecord()
 {
 	// don't record over an old take
-	m_takeFolder = nullptr;
+	takeFolder = nullptr;
 
 	// reset frame count
-	m_currentFrame = 1;
+	currentFrame = 1;
+	recStartTime = kinectHandler->GetCurrentDTime();
 
-	m_lDFrame = -1;
-	m_lCFrame = -1;
+	lDFrame = -1;
+	lCFrame = -1;
 
 	// TODO: fix nutso file naming gymnastics
 	std::wstringstream padTake;
-	padTake << std::setfill(L'0') << std::setw(3) << m_currentTake;
+	padTake << std::setfill(L'0') << std::setw(3) << currentTake;
 	std::wstring fname(L"ATRIUM_TAKE_000");
 	fname.replace(13, 3, padTake.str().c_str());
 	Platform::String^ fNameForWin = ref new Platform::String(fname.c_str());
-	m_currentTake++;
+	currentTake++;
 
-	create_task(m_sessionFolder->CreateFolderAsync(fNameForWin)).then([this](Windows::Storage::StorageFolder^ folder)
+	create_task(sessionFolder->CreateFolderAsync(fNameForWin)).then([this](Windows::Storage::StorageFolder^ folder)
 	{
-		m_takeFolder = folder;
+		takeFolder = folder;
 	});
 }
 
 void KinectRecordMain::PrepToPlayback()
 {
 	// playback from frame 1
-	m_currentFrame = 1;
+	currentFrame = 1;
 
-	if (m_takeFolder != nullptr) {
+	if (takeFolder != nullptr) {
 		Platform::Collections::Vector<Platform::String^>^ fileTypes = ref new Platform::Collections::Vector<Platform::String^>();
 		fileTypes->Append(".adv");
 		QueryOptions^ queryOptions = ref new QueryOptions(CommonFileQuery::OrderByName, fileTypes);
-		StorageFileQueryResult^ queryResult = m_takeFolder->CreateFileQueryWithOptions(queryOptions);
+		StorageFileQueryResult^ queryResult = takeFolder->CreateFileQueryWithOptions(queryOptions);
 		create_task(queryResult->GetFilesAsync()).then([this](IVectorView<Windows::Storage::StorageFile^>^ files)
 		{
-			m_recordFiles = files;
-			m_playbackBuffer = ref new Platform::Collections::Vector<Platform::Object^>(m_recordFiles->Size);
+			recordFiles = files;
+			playbackBuffer = ref new Platform::Collections::Vector<Platform::Object^>(recordFiles->Size);
 			for (int frame = 1; frame < MAX_BUFFER_FRAMES; ++frame) {
-				if ((m_recordFiles != nullptr) && (m_recordFiles->Size > frame)) {
+				if ((recordFiles != nullptr) && (recordFiles->Size > frame)) {
 					CacheFrameForPlayback(frame);
 				}
 			}
@@ -144,7 +145,7 @@ void KinectRecordMain::PrepToPlayback()
 
 void KinectRecordMain::StoreFrameForWrite(const int frame, Platform::Array<WindowsPreview::Kinect::CameraSpacePoint>^ cameraSpacePoints)
 {
-	m_saveToDiskBuffer->SetAt(frame, cameraSpacePoints);
+	saveToDiskBuffer->SetAt(frame, cameraSpacePoints);
 }
 
 int KinectRecordMain::CalculateFrameNumber(uint64 startTime, uint64 currentTime)
@@ -154,35 +155,37 @@ int KinectRecordMain::CalculateFrameNumber(uint64 startTime, uint64 currentTime)
 	return (int)(diff * RELATIVE_TIME_TO_FRAME_MULT + 0.5);
 }
 
-void KinectRecordMain::WriteDepthFrameToDisk(const Platform::Array<WindowsPreview::Kinect::CameraSpacePoint>^ cameraSpacePoints)
+void KinectRecordMain::WriteDepthFrameToDisk(int frameIndex, int frame, Platform::Array<WindowsPreview::Kinect::CameraSpacePoint>^ cameraSpacePoints)
 {
+
 	// XXX - nutso file naming gymnastics
 	std::wstringstream padFrame;
-	padFrame << std::setfill(L'0') << std::setw(5) << m_currentFrame;
+	padFrame << std::setfill(L'0') << std::setw(5) << frame;
 	std::wstring fname(L"KinectStreamDepth_00000.adv");
 	fname.replace(18, 5, padFrame.str().c_str());
-	Platform::String^ fNameForWin = ref new Platform::String(fname.c_str());
+	auto fNameForWin = ref new Platform::String(fname.c_str());
 
 	// cache frames so they're accessible at time of write
-	int frame = m_currentFrame;
+	// XXX copying data a bunch of ways to get it into right format
 	std::vector<byte> bytesV(reinterpret_cast<byte*>(cameraSpacePoints->begin()), reinterpret_cast<byte*>(cameraSpacePoints->end()));
-	Platform::Array<byte>^ bytes = ref new Platform::Array<byte>(&bytesV[0], bytesV.size());
-	m_depthDataCache->SetAt(frame, bytes);
+	auto bytes = ref new Platform::Array<byte>(&bytesV[0], bytesV.size());
+	depthDataCache->SetAt(frameIndex, bytes);
 
-	if (m_takeFolder != nullptr) {
+	if (takeFolder != nullptr) {
 
-		auto createFileTask = create_task(m_takeFolder->CreateFileAsync(fNameForWin));
+		auto createFileTask = create_task(takeFolder->CreateFileAsync(fNameForWin));
 
-		createFileTask.then([this, frame](Windows::Storage::StorageFile^ file)
+		createFileTask.then([this, frameIndex](Windows::Storage::StorageFile^ file)
 		{
-			Windows::Storage::FileIO::WriteBytesAsync(file, safe_cast<Platform::Array<byte>^>(m_depthDataCache->GetAt(frame)));
-			m_depthDataCache->SetAt(frame, nullptr);
+			Windows::Storage::FileIO::WriteBytesAsync(file, safe_cast<Platform::Array<byte>^>(depthDataCache->GetAt(frameIndex)));
+			depthDataCache->SetAt(frameIndex, nullptr);
 		});
 
 	}
 }
 
-void KinectRecordMain::WriteDepthUVFrameToDisk(int frame, Platform::Array<WindowsPreview::Kinect::CameraSpacePoint>^ cameraSpacePoints, Platform::Array<WindowsPreview::Kinect::ColorSpacePoint>^ colorSpacePoints)
+
+void KinectRecordMain::WriteDepthUVFrameToDisk(int frameIndex, int frame, Platform::Array<WindowsPreview::Kinect::CameraSpacePoint>^ cameraSpacePoints, Platform::Array<WindowsPreview::Kinect::ColorSpacePoint>^ colorSpacePoints)
 {
 
 	// XXX - nutso file naming gymnastics
@@ -197,22 +200,22 @@ void KinectRecordMain::WriteDepthUVFrameToDisk(int frame, Platform::Array<Window
 	std::vector<byte> bytesV(reinterpret_cast<byte*>(cameraSpacePoints->begin()), reinterpret_cast<byte*>(cameraSpacePoints->end()));
 	bytesV.insert(bytesV.end(), reinterpret_cast<byte*>(colorSpacePoints->begin()), reinterpret_cast<byte*>(colorSpacePoints->end()));
 	auto bytes = ref new Platform::Array<byte>(&bytesV[0], bytesV.size());
-	m_depthDataCache->SetAt(frame, bytes);
+	depthDataCache->SetAt(frameIndex, bytes);
 
-	if (m_takeFolder != nullptr) {
+	if (takeFolder != nullptr) {
 
-		auto createFileTask = create_task(m_takeFolder->CreateFileAsync(fNameForWin));
+		auto createFileTask = create_task(takeFolder->CreateFileAsync(fNameForWin));
 
-		createFileTask.then([this, frame](Windows::Storage::StorageFile^ file)
+		createFileTask.then([this, frameIndex](Windows::Storage::StorageFile^ file)
 		{
-			Windows::Storage::FileIO::WriteBytesAsync(file, safe_cast<Platform::Array<byte>^>(m_depthDataCache->GetAt(frame)));
-			m_depthDataCache->SetAt(frame, nullptr);
+			Windows::Storage::FileIO::WriteBytesAsync(file, safe_cast<Platform::Array<byte>^>(depthDataCache->GetAt(frameIndex)));
+			depthDataCache->SetAt(frameIndex, nullptr);
 		});
 
 	}
 }
 
-void KinectRecordMain::WriteJpegToDisk(int frame, Windows::Storage::Streams::Buffer^ colorData)
+void KinectRecordMain::WriteJpegToDisk(int frameIndex, int frame, Windows::Storage::Streams::Buffer^ colorData)
 {
 
 	// XXX - nutso file naming gymnastics
@@ -227,31 +230,31 @@ void KinectRecordMain::WriteJpegToDisk(int frame, Windows::Storage::Streams::Buf
 	auto reader = DataReader::FromBuffer(colorData);
 	auto pixelStore = ref new Platform::Array<byte>(1920 * 1080 * 4);
 	reader->ReadBytes(pixelStore);
-	m_colorBufferCache->SetAt(frame, pixelStore);
+	colorBufferCache->SetAt(frameIndex, pixelStore);
 
-	auto createFileTask = create_task(m_takeFolder->CreateFileAsync(fNameForWin));
-
-	createFileTask.then([this, frame](Windows::Storage::StorageFile^ file)
+	auto createFileTask = create_task(takeFolder->CreateFileAsync(fNameForWin));
+	
+	createFileTask.then([this, frameIndex](Windows::Storage::StorageFile^ file)
 	{
 		return file->OpenAsync(FileAccessMode::ReadWrite);
-	}).then([this, frame](IRandomAccessStream^ stream) {
+	}).then([this, frameIndex](IRandomAccessStream^ stream) {
 		return BitmapEncoder::CreateAsync(BitmapEncoder::JpegEncoderId, stream);
-	}).then([this, frame](BitmapEncoder^ encoder) {
-		encoder->SetPixelData(BitmapPixelFormat::Rgba8, BitmapAlphaMode::Ignore, 1920, 1080, 96.0, 96.0, safe_cast<Platform::Array<byte>^>(m_colorBufferCache->GetAt(frame)));
+	}).then([this, frameIndex](BitmapEncoder^ encoder) {
+		encoder->SetPixelData(BitmapPixelFormat::Rgba8, BitmapAlphaMode::Ignore, 1920, 1080, 96.0, 96.0, safe_cast<Platform::Array<byte>^>(colorBufferCache->GetAt(frameIndex)));
 		encoder->FlushAsync();
-		m_colorBufferCache->SetAt(frame, nullptr);
+		colorBufferCache->SetAt(frameIndex, nullptr);
 	});
 }
 
 void KinectRecordMain::CacheFrameForPlayback(int frame)
 {
-	StorageFile^ frameFile = m_recordFiles->GetAt(frame);
+	StorageFile^ frameFile = recordFiles->GetAt(frame);
 	create_task(FileIO::ReadBufferAsync(frameFile)).then([this, frame](IBuffer^ buffer) {
 		Platform::Array<unsigned char>^ bytes = ref new Platform::Array<unsigned char>(buffer->Length);
 		CryptographicBuffer::CopyToByteArray(buffer, &bytes);
 		Platform::Array<WindowsPreview::Kinect::CameraSpacePoint>^ csps =
 			ref new Platform::Array<WindowsPreview::Kinect::CameraSpacePoint>(reinterpret_cast<WindowsPreview::Kinect::CameraSpacePoint *>(bytes->begin()), DEPTH_PIXEL_COUNT);
-		m_playbackBuffer->SetAt(frame - 1, csps);
+		playbackBuffer->SetAt(frame - 1, csps);
 	});
 }
 
@@ -351,44 +354,45 @@ void KinectRecordMain::ExportFrameToObj(Windows::Storage::StorageFolder^ exportF
 		Windows::Storage::FileIO::WriteLinesAsync(objFile, lines);
 
 		// this should only get incremented here
-		m_currentExportFrame++;
-		if (m_currentExportFrame < m_exportFiles->Size) {
-			auto frameFile = m_exportFiles->GetAt(m_currentExportFrame);
+		currentExportFrame++;
+		if (currentExportFrame < exportFiles->Size) {
+			auto frameFile = exportFiles->GetAt(currentExportFrame);
 			create_task(Windows::Storage::FileIO::ReadBufferAsync(frameFile)).then([this, frameFile](Windows::Storage::Streams::IBuffer^ buffer) {
-				ExportFrameToObj(this->m_exportToFolder, frameFile->Name, buffer);
+				ExportFrameToObj(this->exportToFolder, frameFile->Name, buffer);
 			});
 		}
 		else {
-			m_isExporting = false;
+			isExporting = false;
 		}
 	});
 }
 
 void KinectRecordMain::ExportTakeToObj()
 {
-	if (m_exportFromFolder != nullptr && m_exportToFolder != nullptr) {
+	if (exportFromFolder != nullptr && exportToFolder != nullptr) {
 
-		m_isExporting = true;
+		isExporting = true;
 
 		Platform::Collections::Vector<Platform::String^>^ fileTypes = ref new Platform::Collections::Vector<Platform::String^>();
 		fileTypes->Append(".adv");
 		QueryOptions^ queryOptions = ref new QueryOptions(CommonFileQuery::OrderByName, fileTypes);
-		StorageFileQueryResult^ queryResult = m_exportFromFolder->CreateFileQueryWithOptions(queryOptions);
+		StorageFileQueryResult^ queryResult = exportFromFolder->CreateFileQueryWithOptions(queryOptions);
 		create_task(queryResult->GetFilesAsync()).then([this](IVectorView<Windows::Storage::StorageFile^>^ files)
 		{
-			m_currentExportFrame = 0;
-			m_exportFiles = files;
-			Windows::Storage::StorageFile^ frameFile = files->GetAt(m_currentExportFrame);
+			currentExportFrame = 0;
+			exportFiles = files;
+			Windows::Storage::StorageFile^ frameFile = files->GetAt(currentExportFrame);
 			create_task(Windows::Storage::FileIO::ReadBufferAsync(frameFile)).then([this, frameFile](Windows::Storage::Streams::IBuffer^ buffer) {
-				ExportFrameToObj(this->m_exportToFolder, frameFile->Name, buffer);
+				ExportFrameToObj(this->exportToFolder, frameFile->Name, buffer);
 			});
 		});
 	}
 }
 
-void KinectRecordMain::StreamColor(bool streamColor)
+void KinectRecordMain::StreamColor(bool newStreamColor)
 {
-	m_streamColor = streamColor;
+	streamColor = newStreamColor;
+	kinectHandler->SetStreamColor(streamColor);
 	if (!streamColor) {
 		m_sceneRenderer->ResetColorBuffer();
 	}
@@ -404,45 +408,59 @@ void KinectRecordMain::Update()
 	{
 
 		// live feed from kinect
-		if (m_kinectHandler->HasUnreadDepthData() && !m_isPlayingBack && !m_isRecording && !m_isExporting) {
+		if (kinectHandler->HasUnreadDepthData() && !isPlayingBack && !isRecording && !isExporting) {
 
 			m_sceneRenderer->Update(m_timer);
 
 			// DirectX rendering
-			m_sceneRenderer->UpdateVertexBuffer(m_kinectHandler->GetCurrentDepthData());
-			if (m_kinectHandler->HasUnreadHandData()) {
-				m_sceneRenderer->UpdateLightPositions(m_kinectHandler->GetHands()->get(0));
+			m_sceneRenderer->UpdateVertexBuffer(kinectHandler->GetCurrentDepthData());
+			if (kinectHandler->HasUnreadHandData()) {
+				m_sceneRenderer->UpdateLightPositions(kinectHandler->GetHands()->get(0));
 			}
 			m_sceneRenderer->UpdateTime(-1);
-			if (m_streamColor && m_kinectHandler->HasUnreadColorData()) {
-				m_sceneRenderer->UpdateColorBuffer(m_kinectHandler->GetCurrentColorData(), m_kinectHandler->GetCurrentUVData());
+			if (streamColor && kinectHandler->HasUnreadColorData()) {
+				m_sceneRenderer->UpdateColorBuffer(kinectHandler->GetCurrentColorData(), kinectHandler->GetCurrentUVData());
 			}
 
 			// advance to the next frame
-			m_currentFrame++;
+			currentFrame++;
 		}
 		// stream data to disk during recording
-		else if (m_kinectHandler->HasUnreadDepthData() && m_isRecording) {
+		else if (kinectHandler->HasUnreadDepthData() && isRecording) {
 
-			WriteDepthUVFrameToDisk(m_currentFrame, m_kinectHandler->GetCurrentDepthData(), m_kinectHandler->GetCurrentUVData());
-			WriteJpegToDisk(m_currentFrame, m_kinectHandler->GetCurrentColorData());
+			int dFrame = CalculateFrameNumber(recStartTime, kinectHandler->GetCurrentDTime());
+			dFrame = dFrame == lDFrame ? dFrame + 1 : dFrame;
+			if (dFrame > lDFrame) {
+				if (streamColor) {
+					//WriteDepthUVFrameToDisk(currentFrame, currentFrame, kinectHandler->GetCurrentDepthData(), kinectHandler->GetCurrentUVData());
+					WriteJpegToDisk(currentFrame, currentFrame, kinectHandler->GetCurrentColorData());
+				}
+				else {
+					WriteDepthFrameToDisk(currentFrame, currentFrame, kinectHandler->GetCurrentDepthData());
+				}
+				lDFrame = dFrame;
+				currentFrame++;
+			}
+			
+			//WriteDepthUVFrameToDisk(currentFrame, kinectHandler->GetCurrentDepthData(), kinectHandler->GetCurrentUVData());
+			//WriteJpegToDisk(currentFrame, kinectHandler->GetCurrentColorData());
+
 
 			// advance to the next frame
-			m_currentFrame++;
 		}
 		// playback
-		else if (m_isPlayingBack) {
+		else if (isPlayingBack) {
 
 			m_sceneRenderer->Update(m_timer);
 
-			if (m_playbackBuffer->Size >= m_currentFrame) {
-				Platform::Array<WindowsPreview::Kinect::CameraSpacePoint>^ csps = safe_cast<Platform::Array<WindowsPreview::Kinect::CameraSpacePoint>^>(m_playbackBuffer->GetAt(m_currentFrame - 1));
+			if (playbackBuffer->Size >= currentFrame) {
+				Platform::Array<WindowsPreview::Kinect::CameraSpacePoint>^ csps = safe_cast<Platform::Array<WindowsPreview::Kinect::CameraSpacePoint>^>(playbackBuffer->GetAt(currentFrame - 1));
 				if (csps != nullptr) {
 					m_sceneRenderer->UpdateVertexBuffer(csps);
-					m_sceneRenderer->UpdateTime(m_currentFrame);
-					m_playbackBuffer->SetAt(m_currentFrame - 1, nullptr);
-					CacheFrameForPlayback((m_currentFrame + 98) % (m_playbackBuffer->Size - 1) + 1);
-					m_currentFrame = m_currentFrame == (m_recordFiles->Size - 1) ? 1 : m_currentFrame + 1;
+					m_sceneRenderer->UpdateTime(currentFrame);
+					playbackBuffer->SetAt(currentFrame - 1, nullptr);
+					CacheFrameForPlayback((currentFrame + 98) % (playbackBuffer->Size - 1) + 1);
+					currentFrame = currentFrame == (recordFiles->Size - 1) ? 1 : currentFrame + 1;
 				}
 			}
 		}

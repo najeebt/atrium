@@ -362,13 +362,17 @@ void KinectHandler::InitializeDefaultSensor()
 		return;
 	}
 
-	multiSourceFrameReader = kinectSensor->OpenMultiSourceFrameReader(WindowsPreview::Kinect::FrameSourceTypes::Depth | WindowsPreview::Kinect::FrameSourceTypes::Color);
-	multiSourceFrameReader->MultiSourceFrameArrived += ref new Windows::Foundation::TypedEventHandler<WindowsPreview::Kinect::MultiSourceFrameReader^, WindowsPreview::Kinect::MultiSourceFrameArrivedEventArgs ^>(this, &KinectHandler::MultiSource_FrameArrived);
+	//multiSourceFrameReader = kinectSensor->OpenMultiSourceFrameReader(WindowsPreview::Kinect::FrameSourceTypes::Depth | WindowsPreview::Kinect::FrameSourceTypes::Color);
+	//multiSourceFrameReader->MultiSourceFrameArrived += ref new Windows::Foundation::TypedEventHandler<WindowsPreview::Kinect::MultiSourceFrameReader^, WindowsPreview::Kinect::MultiSourceFrameArrivedEventArgs ^>(this, &KinectHandler::MultiSource_FrameArrived);
 
-	currentFaceModel = ref new FaceModel();
+	depthFrameSource = kinectSensor->DepthFrameSource;
+	depthFrameReader = depthFrameSource->OpenReader();
+	depthFrameReader->FrameArrived += ref new TypedEventHandler<WindowsPreview::Kinect::DepthFrameReader ^, WindowsPreview::Kinect::DepthFrameArrivedEventArgs ^>(this, &KinectHandler::DepthReader_FrameArrived);
+
+	/*currentFaceModel = ref new FaceModel();
 	currentFaceAlignment = ref new FaceAlignment();
 	cachedFaceIndices = FaceModel::TriangleIndices;
-
+*/
 	coordinateMapper = kinectSensor->CoordinateMapper;
 
 	kinectSensor->Open();

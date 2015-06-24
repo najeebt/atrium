@@ -512,7 +512,7 @@ void KinectRender::CreateDeviceDependentResources()
 	// Load shaders asynchronously.
 	auto loadGSTask = DX::ReadDataAsync(L"DefaultGeometryShader.cso");
 	auto loadVSTask = DX::ReadDataAsync(L"BaseVertexShader.cso");
-	auto loadPSTask = DX::ReadDataAsync(L"SimpleColorPixelShader.cso");
+	auto loadPSTask = DX::ReadDataAsync(L"KeyLightPixelShader.cso");
 	auto loadShadowVSTask = DX::ReadDataAsync(L"ShadowVertexShader.cso");
 	auto loadShadowGSTask = DX::ReadDataAsync(L"ShadowGeometryShader.cso");
 

@@ -44,6 +44,12 @@ namespace KinectRecord
         private: ::Windows::UI::Xaml::Controls::Button^ RecordButton;
         private: ::Windows::UI::Xaml::Controls::Button^ PlaybackButton;
         private: ::Windows::UI::Xaml::Controls::CheckBox^ ColorCheckBox;
+        private: ::Windows::UI::Xaml::Controls::TextBlock^ TakeDurationLabel;
+        private: ::Windows::UI::Xaml::Controls::TextBlock^ TakeDurationValue;
+        private: ::Windows::UI::Xaml::Controls::TextBlock^ FramesRecordedLabel;
+        private: ::Windows::UI::Xaml::Controls::TextBlock^ FramesRecordedValue;
+        private: ::Windows::UI::Xaml::Controls::TextBlock^ FPSLabel;
+        private: ::Windows::UI::Xaml::Controls::TextBlock^ FPSValue;
         private: ::Windows::UI::Xaml::Controls::AppBar^ bottomAppBar;
     };
 }

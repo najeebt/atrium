@@ -62,6 +62,9 @@ DirectXPage::DirectXPage():
 	pointerVisualizationSettings->IsContactFeedbackEnabled = false; 
 	pointerVisualizationSettings->IsBarrelButtonFeedbackEnabled = false;
 
+	recStartTime = ref new Windows::Globalization::Calendar;
+	recEndTime = ref new Windows::Globalization::Calendar;
+
 	// At this point we have access to the device. 
 	// We can create the device-dependent resources.
 	m_deviceResources = std::make_shared<DX::DeviceResources>();
@@ -93,7 +96,6 @@ DirectXPage::DirectXPage():
 	m_main->StartRenderLoop();
 
 	m_main->kinectHandler->InitializeDefaultSensor();
-
 }
 
 DirectXPage::~DirectXPage()
@@ -243,14 +245,36 @@ void KinectRecord::DirectXPage::Record(Platform::Object^ sender, Windows::UI::Xa
 		m_main->isRecording = false;
 		RecIndicator->Visibility = Windows::UI::Xaml::Visibility::Collapsed;
 		RecordButton->Content = "RECORD";
+
+		recEndTime->SetToNow();
+
+		float seconds = (recEndTime->Nanosecond - recStartTime->Nanosecond) * 0.000000001;
+
+		TakeDurationValue->Text = seconds.ToString();
+		FramesRecordedValue->Text = m_main->currentFrame.ToString();
+		FPSValue->Text = ((float)m_main->currentFrame / seconds).ToString();
 	}
 	else {
 		if (m_main->sessionFolder != nullptr) {
 			m_main->isRecording = true;
 			RecIndicator->Visibility = Windows::UI::Xaml::Visibility::Visible;
 			TakeDisplay->Text = m_main->currentTake.ToString();
-			m_main->PrepToRecord();
+
+			recStartTime->SetToNow();
+			
 			RecordButton->Content = "STOP";
+
+			task<void> record_depth([this] {
+				m_main->PrepToRecord();
+
+				while (m_main->isRecording) {
+					m_main->Record();
+				}
+			});
+
+			record_depth.then([this] {
+				m_main->EndRecording();
+				});
 		}
 		else {
 			Windows::UI::Popups::MessageDialog^ noFileWarning = ref new Windows::UI::Popups::MessageDialog("Please select a folder to record to.");
@@ -267,7 +291,7 @@ void KinectRecord::DirectXPage::StopRecording(Platform::Object^ sender, Windows:
 void KinectRecord::DirectXPage::PickAFileButton_Click(Object^ sender, RoutedEventArgs^ e)
 {
 	FolderPicker^ openPicker = ref new FolderPicker();
-	openPicker->ViewMode = PickerViewMode::Thumbnail;
+	openPicker->ViewMode = PickerViewMode::List;
 	openPicker->SuggestedStartLocation = PickerLocationId::DocumentsLibrary;
 	openPicker->FileTypeFilter->Append(".adv");
 
@@ -309,7 +333,7 @@ void KinectRecord::DirectXPage::Button_Click_1(Platform::Object^ sender, Windows
 		}
 		else {
 			FolderPicker^ openPicker = ref new FolderPicker();
-			openPicker->ViewMode = PickerViewMode::Thumbnail;
+			openPicker->ViewMode = PickerViewMode::List;
 			openPicker->SuggestedStartLocation = PickerLocationId::DocumentsLibrary;
 			openPicker->FileTypeFilter->Append(".adv");
 
@@ -343,16 +367,16 @@ void KinectRecord::DirectXPage::TextBlock_SelectionChanged_1(Platform::Object^ s
 
 void KinectRecord::DirectXPage::Button_Click_2(Platform::Object^ sender, Windows::UI::Xaml::RoutedEventArgs^ e)
 {
-	FolderPicker^ openPicker = ref new FolderPicker();
-	openPicker->ViewMode = PickerViewMode::Thumbnail;
-	openPicker->SuggestedStartLocation = PickerLocationId::DocumentsLibrary;
+	FileOpenPicker^ openPicker = ref new FileOpenPicker();
+	openPicker->ViewMode = PickerViewMode::List;
+	openPicker->SuggestedStartLocation = PickerLocationId::PicturesLibrary;
 	openPicker->FileTypeFilter->Append(".adv");
 
-	create_task(openPicker->PickSingleFolderAsync()).then([this](Windows::Storage::StorageFolder^ folder)
+	create_task(openPicker->PickSingleFileAsync()).then([this](Windows::Storage::StorageFile^ exportFile)
 	{
-		if (folder)
+		if (exportFile)
 		{
-			m_main->exportFromFolder = folder;
+			m_main->exportFromFile = exportFile;
 		}
 	});
 }
@@ -375,7 +399,7 @@ void KinectRecord::DirectXPage::Slider_ValueChanged(Platform::Object^ sender, Wi
 void KinectRecord::DirectXPage::Button_Click_3(Platform::Object^ sender, Windows::UI::Xaml::RoutedEventArgs^ e)
 {
 	FileOpenPicker^ openPicker = ref new FileOpenPicker();
-	openPicker->ViewMode = PickerViewMode::Thumbnail;
+	openPicker->ViewMode = PickerViewMode::List;
 	openPicker->SuggestedStartLocation = PickerLocationId::DocumentsLibrary;
 	openPicker->FileTypeFilter->Append(".hlsl");
 
@@ -423,7 +447,7 @@ void KinectRecord::DirectXPage::UpdateShaderIfChanged(IStorageQueryResultBase^ s
 void KinectRecord::DirectXPage::Button_Click_4(Platform::Object^ sender, Windows::UI::Xaml::RoutedEventArgs^ e)
 {
 	FileOpenPicker^ openPicker = ref new FileOpenPicker();
-	openPicker->ViewMode = PickerViewMode::Thumbnail;
+	openPicker->ViewMode = PickerViewMode::List;
 	openPicker->SuggestedStartLocation = PickerLocationId::DocumentsLibrary;
 	openPicker->FileTypeFilter->Append(".hlsl");
 
@@ -440,7 +464,7 @@ void KinectRecord::DirectXPage::Button_Click_4(Platform::Object^ sender, Windows
 void KinectRecord::DirectXPage::Button_Click_5(Platform::Object^ sender, Windows::UI::Xaml::RoutedEventArgs^ e)
 {
 	FileOpenPicker^ openPicker = ref new FileOpenPicker();
-	openPicker->ViewMode = PickerViewMode::Thumbnail;
+	openPicker->ViewMode = PickerViewMode::List;
 	openPicker->SuggestedStartLocation = PickerLocationId::DocumentsLibrary;
 	openPicker->FileTypeFilter->Append(".hlsl");
 
@@ -456,7 +480,7 @@ void KinectRecord::DirectXPage::Button_Click_5(Platform::Object^ sender, Windows
 void KinectRecord::DirectXPage::Button_Click_6(Platform::Object^ sender, Windows::UI::Xaml::RoutedEventArgs^ e)
 {
 	FolderPicker^ openPicker = ref new FolderPicker();
-	openPicker->ViewMode = PickerViewMode::Thumbnail;
+	openPicker->ViewMode = PickerViewMode::List;
 	openPicker->SuggestedStartLocation = PickerLocationId::DocumentsLibrary;
 	openPicker->FileTypeFilter->Append(".adv");
 
@@ -464,8 +488,12 @@ void KinectRecord::DirectXPage::Button_Click_6(Platform::Object^ sender, Windows
 	{
 		if (folder)
 		{
-			m_main->exportToFolder = folder;
-			m_main->ExportTakeToObj();
+			task<void> export_take([this, folder] {
+				m_main->exportToFolder = folder;
+				m_main->ExportTakeToObj();
+			});
+			
+			export_take.then([] {});
 		}
 	});
 }

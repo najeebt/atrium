@@ -40,6 +40,18 @@ void ::KinectRecord::DirectXPage::InitializeComponent()
     PlaybackButton = safe_cast<::Windows::UI::Xaml::Controls::Button^>(static_cast<Windows::UI::Xaml::IFrameworkElement^>(this)->FindName(L"PlaybackButton"));
     // Get the CheckBox named 'ColorCheckBox'
     ColorCheckBox = safe_cast<::Windows::UI::Xaml::Controls::CheckBox^>(static_cast<Windows::UI::Xaml::IFrameworkElement^>(this)->FindName(L"ColorCheckBox"));
+    // Get the TextBlock named 'TakeDurationLabel'
+    TakeDurationLabel = safe_cast<::Windows::UI::Xaml::Controls::TextBlock^>(static_cast<Windows::UI::Xaml::IFrameworkElement^>(this)->FindName(L"TakeDurationLabel"));
+    // Get the TextBlock named 'TakeDurationValue'
+    TakeDurationValue = safe_cast<::Windows::UI::Xaml::Controls::TextBlock^>(static_cast<Windows::UI::Xaml::IFrameworkElement^>(this)->FindName(L"TakeDurationValue"));
+    // Get the TextBlock named 'FramesRecordedLabel'
+    FramesRecordedLabel = safe_cast<::Windows::UI::Xaml::Controls::TextBlock^>(static_cast<Windows::UI::Xaml::IFrameworkElement^>(this)->FindName(L"FramesRecordedLabel"));
+    // Get the TextBlock named 'FramesRecordedValue'
+    FramesRecordedValue = safe_cast<::Windows::UI::Xaml::Controls::TextBlock^>(static_cast<Windows::UI::Xaml::IFrameworkElement^>(this)->FindName(L"FramesRecordedValue"));
+    // Get the TextBlock named 'FPSLabel'
+    FPSLabel = safe_cast<::Windows::UI::Xaml::Controls::TextBlock^>(static_cast<Windows::UI::Xaml::IFrameworkElement^>(this)->FindName(L"FPSLabel"));
+    // Get the TextBlock named 'FPSValue'
+    FPSValue = safe_cast<::Windows::UI::Xaml::Controls::TextBlock^>(static_cast<Windows::UI::Xaml::IFrameworkElement^>(this)->FindName(L"FPSValue"));
     // Get the AppBar named 'bottomAppBar'
     bottomAppBar = safe_cast<::Windows::UI::Xaml::Controls::AppBar^>(static_cast<Windows::UI::Xaml::IFrameworkElement^>(this)->FindName(L"bottomAppBar"));
 }

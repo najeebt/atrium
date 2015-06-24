@@ -31,7 +31,7 @@
     </Page.Resources>
 
     <SwapChainPanel x:Name="swapChainPanel" HorizontalAlignment="Right">
-        <StackPanel Margin="10,101,1157,75" Orientation="Vertical">
+        <StackPanel Margin="10,26,1157,10" Orientation="Vertical">
             <TextBlock x:ConnectionId='3' Text="ATRIUM"
         		HorizontalAlignment="Left"
         		VerticalAlignment="Top"
@@ -45,10 +45,16 @@
             <Button x:ConnectionId='9' Content="EXPORT FROM" HorizontalAlignment="Stretch"  VerticalAlignment="Stretch" Margin="0,0,72,0"                       />
             <Button x:ConnectionId='10' Content="EXPORT TO" HorizontalAlignment="Stretch"  VerticalAlignment="Stretch" Margin="0,0,72,40" RenderTransformOrigin="0.443,-5.579"                       />
             <CheckBox Content="Depth" HorizontalAlignment="Left" IsChecked="True" IsEnabled="False" VerticalAlignment="Top"/>
-            <CheckBox x:ConnectionId='11' x:Name="ColorCheckBox" Content="Color" HorizontalAlignment="Left" VerticalAlignment="Top"                          IsChecked="True"/>
+            <CheckBox x:ConnectionId='11' x:Name="ColorCheckBox" Content="Color" IsEnabled="False" HorizontalAlignment="Left" VerticalAlignment="Top"                          IsChecked="False"/>
             <Button x:ConnectionId='12' Content="Pixel Shader" HorizontalAlignment="Left" Margin="0,20,0,0" VerticalAlignment="Top"                       />
             <Button x:ConnectionId='13' Content="Vertex Shader" HorizontalAlignment="Left" Margin="0,0,0,0" VerticalAlignment="Top"                       />
             <Button x:ConnectionId='14' Content="Geometry Shader" HorizontalAlignment="Left" Margin="0,0,0,0" VerticalAlignment="Top"                       />
+            <TextBlock x:Name="TakeDurationLabel" Margin="0,0,0,0" TextWrapping="Wrap" Text="Duration of take"/>
+            <TextBlock x:Name="TakeDurationValue" Margin="0,0,0,20" TextWrapping="Wrap" Text="0"/>
+            <TextBlock x:Name="FramesRecordedLabel" Margin="0,0,0,0" TextWrapping="Wrap" Text="Frames recorded"/>
+            <TextBlock x:Name="FramesRecordedValue" Margin="0,0,0,20" TextWrapping="Wrap" Text="0"/>
+            <TextBlock x:Name="FPSLabel" Margin="0,0,0,0" TextWrapping="Wrap" Text="FPS of take"/>
+            <TextBlock x:Name="FPSValue" Margin="0,0,0,20" TextWrapping="Wrap" Text="0"/>
         </StackPanel>
         <TextBlock x:ConnectionId='1' x:Name="RecIndicator" Visibility="Collapsed" HorizontalAlignment="Left" Margin="284,101,0,0" TextWrapping="Wrap" Text="REC" VerticalAlignment="Top" Height="48" Width="165"                                                 Style="{StaticResource REC_STYLE}"/>
         <Slider x:ConnectionId='2' x:Name="TimeSlider" Visibility="Collapsed" HorizontalAlignment="Left" Minimum="1" Margin="60,708,0,0" VerticalAlignment="Top" Width="1213"                                   />

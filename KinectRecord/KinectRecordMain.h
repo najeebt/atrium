@@ -9,6 +9,7 @@
 #include "Content\Rendering\TextRender\SampleFpsTextRenderer.h"
 #include "Content\KinectHandler\KinectHandler.h"
 
+
 ///<summary>
 /// Records and plays back data streams from the Kinect.
 ///</summary>
@@ -30,7 +31,10 @@ namespace KinectRecord
 
 		// recording
 		void PrepToRecord();
+		void EndRecording();
 		void StreamColor(bool showColor);
+
+		void Record();
 
 		// playback
 		void PrepToPlayback();
@@ -38,8 +42,8 @@ namespace KinectRecord
 
 		// export
 		void ExportTakeToObj();
-		void ExportFrameToObj(Windows::Storage::StorageFolder^ exportFolder, Platform::String^ frameName, Windows::Storage::Streams::IBuffer^ frameData);
-		
+		int ExportFrameToObj(uint64 startTime, uint64 frameTime, int prevFrame, Platform::Array<WindowsPreview::Kinect::CameraSpacePoint>^ csps);
+
 		void UpdateShader(Platform::String^ shaderText, int shaderType) { m_sceneRenderer->UpdateShader(shaderText, shaderType); }
 
 		// IDeviceNotify
@@ -53,6 +57,7 @@ namespace KinectRecord
 		bool isRecording;
 		bool isPlayingBack;
 		bool isExporting;
+		bool writerAvailable;
 
 		bool streamColor;
 
@@ -60,6 +65,8 @@ namespace KinectRecord
 		int currentTake;
 		int currentExportFrame;
 		uint64 recStartTime;
+		
+		int lastTakeDuration;
 
 		int lDFrame;
 		int lCFrame;
@@ -77,9 +84,13 @@ namespace KinectRecord
 		Collections::IVectorView<Windows::Storage::StorageFile^>^ exportFiles;
 		Windows::Storage::StorageFolder^ sessionFolder;
 		Windows::Storage::StorageFolder^ takeFolder;
-		Windows::Storage::StorageFolder^ exportFromFolder;
+		Windows::Storage::StorageFile^ exportFromFile;
 		Windows::Storage::StorageFolder^ exportToFolder;
 		std::vector<Windows::Storage::StorageFile^> shaderFiles;
+
+		Windows::Storage::StorageFile^ recordFile;
+		Windows::Storage::Streams::IOutputStream^ outputStream;
+		Windows::Storage::Streams::DataWriter^ writer;
 
 		// tracking for recompiling shaders
 		std::vector<Windows::Storage::Search::StorageFileQueryResult^> shaderQueryResult;
@@ -90,7 +101,7 @@ namespace KinectRecord
 		bool Render();
 
 		void StoreFrameForWrite(const int frame, Platform::Array<WindowsPreview::Kinect::CameraSpacePoint>^ cameraSpacePoints);
-		void WriteDepthFrameToDisk(int frameIndex, int frame, Platform::Array<WindowsPreview::Kinect::CameraSpacePoint>^ cameraSpacePoints);
+		void WriteDepthFrameToDisk(uint64 frameTime, Platform::Array<WindowsPreview::Kinect::CameraSpacePoint>^ cameraSpacePoints);
 		void WriteDepthUVFrameToDisk(int frameIndex, int frame, Platform::Array<WindowsPreview::Kinect::CameraSpacePoint>^ cameraSpacePoints, Platform::Array<WindowsPreview::Kinect::ColorSpacePoint>^ colorSpacePoints);
 		void WriteUVToDisk(const Platform::Array<WindowsPreview::Kinect::ColorSpacePoint>^ colorSpacePoints);
 		void WriteJpegToDisk(int frameIndex, int frame, Windows::Storage::Streams::Buffer^ colorData);

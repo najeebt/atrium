@@ -45,6 +45,9 @@ namespace KinectRecord
 		Windows::Foundation::IAsyncAction^ m_inputLoopWorker;
 		Windows::UI::Core::CoreIndependentInputSource^ m_coreInput;
 
+		Windows::Globalization::Calendar^ recStartTime;
+		Windows::Globalization::Calendar^ recEndTime;
+
 		// Independent input handling functions.
 		void StorePointerEvent(Windows::UI::Core::PointerEventArgs^ e);
 		void OnPointerPressed(Platform::Object^ sender, Windows::UI::Core::PointerEventArgs^ e);

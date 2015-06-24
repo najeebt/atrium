@@ -295,7 +295,7 @@ void KinectRecord::DirectXPage::PickAFileButton_Click(Object^ sender, RoutedEven
 {
 	FolderPicker^ openPicker = ref new FolderPicker();
 	openPicker->ViewMode = PickerViewMode::List;
-	openPicker->SuggestedStartLocation = PickerLocationId::DocumentsLibrary;
+	openPicker->SuggestedStartLocation = PickerLocationId::PicturesLibrary;
 	openPicker->FileTypeFilter->Append(".adv");
 
 	create_task(openPicker->PickSingleFolderAsync()).then([this](Windows::Storage::StorageFolder^ folder)
@@ -335,16 +335,16 @@ void KinectRecord::DirectXPage::Button_Click_1(Platform::Object^ sender, Windows
 			PlaybackButton->Content = "STOP";
 		}
 		else {
-			FolderPicker^ openPicker = ref new FolderPicker();
+			FileOpenPicker^ openPicker = ref new FileOpenPicker();
 			openPicker->ViewMode = PickerViewMode::List;
-			openPicker->SuggestedStartLocation = PickerLocationId::DocumentsLibrary;
+			openPicker->SuggestedStartLocation = PickerLocationId::PicturesLibrary;
 			openPicker->FileTypeFilter->Append(".adv");
 
-			create_task(openPicker->PickSingleFolderAsync()).then([this](Windows::Storage::StorageFolder^ folder)
+			create_task(openPicker->PickSingleFileAsync()).then([this](Windows::Storage::StorageFile^ file)
 			{
-				if (folder)
+				if (file)
 				{
-					m_main->takeFolder = folder;
+					m_main->takeFile = file;
 					m_main->PrepToPlayback();
 					m_main->isPlayingBack = true;
 					PlaybackButton->Content = "STOP";
@@ -403,7 +403,7 @@ void KinectRecord::DirectXPage::Button_Click_3(Platform::Object^ sender, Windows
 {
 	FileOpenPicker^ openPicker = ref new FileOpenPicker();
 	openPicker->ViewMode = PickerViewMode::List;
-	openPicker->SuggestedStartLocation = PickerLocationId::DocumentsLibrary;
+	openPicker->SuggestedStartLocation = PickerLocationId::PicturesLibrary;
 	openPicker->FileTypeFilter->Append(".hlsl");
 
 	create_task(openPicker->PickSingleFileAsync()).then([this](Windows::Storage::StorageFile^ file)
@@ -451,7 +451,7 @@ void KinectRecord::DirectXPage::Button_Click_4(Platform::Object^ sender, Windows
 {
 	FileOpenPicker^ openPicker = ref new FileOpenPicker();
 	openPicker->ViewMode = PickerViewMode::List;
-	openPicker->SuggestedStartLocation = PickerLocationId::DocumentsLibrary;
+	openPicker->SuggestedStartLocation = PickerLocationId::PicturesLibrary;
 	openPicker->FileTypeFilter->Append(".hlsl");
 
 	create_task(openPicker->PickSingleFileAsync()).then([this](Windows::Storage::StorageFile^ file)
@@ -468,7 +468,7 @@ void KinectRecord::DirectXPage::Button_Click_5(Platform::Object^ sender, Windows
 {
 	FileOpenPicker^ openPicker = ref new FileOpenPicker();
 	openPicker->ViewMode = PickerViewMode::List;
-	openPicker->SuggestedStartLocation = PickerLocationId::DocumentsLibrary;
+	openPicker->SuggestedStartLocation = PickerLocationId::PicturesLibrary;
 	openPicker->FileTypeFilter->Append(".hlsl");
 
 	create_task(openPicker->PickSingleFileAsync()).then([this](Windows::Storage::StorageFile^ file)
@@ -484,7 +484,7 @@ void KinectRecord::DirectXPage::Button_Click_6(Platform::Object^ sender, Windows
 {
 	FolderPicker^ openPicker = ref new FolderPicker();
 	openPicker->ViewMode = PickerViewMode::List;
-	openPicker->SuggestedStartLocation = PickerLocationId::DocumentsLibrary;
+	openPicker->SuggestedStartLocation = PickerLocationId::PicturesLibrary;
 	openPicker->FileTypeFilter->Append(".adv");
 
 	create_task(openPicker->PickSingleFolderAsync()).then([this](Windows::Storage::StorageFolder^ folder)

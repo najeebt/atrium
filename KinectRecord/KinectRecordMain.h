@@ -68,29 +68,21 @@ namespace KinectRecord
 		
 		int lastTakeDuration;
 
-		int lDFrame;
-		int lCFrame;
-
 		// playback buffer stores MAX_BUFFER_FRAMES frames of point data
 		Platform::Collections::Vector< Platform::Object^ >^ playbackBuffer;
 		Platform::Collections::Vector< Platform::Object^ >^ saveToDiskBuffer;
-
-		//// holding onto data until it's written
-		Platform::Collections::Vector< Platform::Object^ >^ depthDataCache;
-		Platform::Collections::Vector< Platform::Object^ >^ colorBufferCache;
 
 		// winrt file management
 		Collections::IVectorView<Windows::Storage::StorageFile^>^ recordFiles;
 		Collections::IVectorView<Windows::Storage::StorageFile^>^ exportFiles;
 		Windows::Storage::StorageFolder^ sessionFolder;
-		Windows::Storage::StorageFolder^ takeFolder;
+		Windows::Storage::StorageFile^ takeFile;
 		Windows::Storage::StorageFile^ exportFromFile;
 		Windows::Storage::StorageFolder^ exportToFolder;
 		std::vector<Windows::Storage::StorageFile^> shaderFiles;
 
 		Windows::Storage::StorageFile^ recordFile;
-		Windows::Storage::Streams::IOutputStream^ outputStream;
-		Windows::Storage::Streams::DataWriter^ writer;
+		Windows::Storage::Streams::IRandomAccessStream^ recordStream;
 
 		// tracking for recompiling shaders
 		std::vector<Windows::Storage::Search::StorageFileQueryResult^> shaderQueryResult;
@@ -100,16 +92,7 @@ namespace KinectRecord
 		void Update();
 		bool Render();
 
-		void StoreFrameForWrite(const int frame, Platform::Array<WindowsPreview::Kinect::CameraSpacePoint>^ cameraSpacePoints);
-		void WriteDepthFrameToDisk(uint64 frameTime, Platform::Array<WindowsPreview::Kinect::CameraSpacePoint>^ cameraSpacePoints);
-		void WriteDepthUVFrameToDisk(int frameIndex, int frame, Platform::Array<WindowsPreview::Kinect::CameraSpacePoint>^ cameraSpacePoints, Platform::Array<WindowsPreview::Kinect::ColorSpacePoint>^ colorSpacePoints);
-		void WriteUVToDisk(const Platform::Array<WindowsPreview::Kinect::ColorSpacePoint>^ colorSpacePoints);
-		void WriteJpegToDisk(int frameIndex, int frame, Windows::Storage::Streams::Buffer^ colorData);
-
 		int CalculateFrameNumber(uint64 startTime, uint64 currentTime);
-
-
-		Platform::Array<byte>^ pixelStore;
 
 		// device resources.
 		std::shared_ptr<DX::DeviceResources> m_deviceResources;

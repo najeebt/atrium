@@ -111,7 +111,7 @@ void KinectRecordMain::PrepToRecord()
 	std::wstringstream padTake;
 	padTake << std::setfill(L'0') << std::setw(3) << currentTake;
 	std::wstring fname(L"ATRIUM_TAKE_000.adv");
-	fname.replace(13, 3, padTake.str().c_str());
+	fname.replace(12, 3, padTake.str().c_str());
 	Platform::String^ fNameForWin = ref new Platform::String(fname.c_str());
 	currentTake++;
 
@@ -138,11 +138,8 @@ void KinectRecordMain::Record()
 			auto frameTime = kinectHandler->GetCurrentDTime();
 			auto cameraSpacePoints = kinectHandler->GetCurrentDepthData();
 
-			std::vector<byte> bytesV(reinterpret_cast<byte*>(cameraSpacePoints->begin()), reinterpret_cast<byte*>(cameraSpacePoints->end()));
-			auto bytes = ref new Platform::Array<byte>(&bytesV[0], bytesV.size());
-
 			writer->WriteUInt64(frameTime);
-			writer->WriteBytes(bytes);
+			writer->WriteBytes(Platform::ArrayReference<byte>(reinterpret_cast<byte*>(cameraSpacePoints->begin()), DEPTH_PIXEL_COUNT*sizeof(CameraSpacePoint)));
 		}
 
 		currentFrame++;

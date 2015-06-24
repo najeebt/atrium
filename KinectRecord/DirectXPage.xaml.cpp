@@ -247,8 +247,11 @@ void KinectRecord::DirectXPage::Record(Platform::Object^ sender, Windows::UI::Xa
 		RecordButton->Content = "RECORD";
 
 		recEndTime->SetToNow();
+		
+		DateTime endTime = recEndTime->GetDateTime();
+		DateTime startTime = recStartTime->GetDateTime();
 
-		float seconds = (recEndTime->Nanosecond - recStartTime->Nanosecond) * 0.000000001;
+		float seconds = (endTime.UniversalTime - startTime.UniversalTime) * 0.0000001;
 
 		TakeDurationValue->Text = seconds.ToString();
 		FramesRecordedValue->Text = m_main->currentFrame.ToString();

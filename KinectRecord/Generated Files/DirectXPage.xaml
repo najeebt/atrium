@@ -49,7 +49,7 @@
             <Button x:ConnectionId='12' Content="Pixel Shader" HorizontalAlignment="Left" Margin="0,20,0,0" VerticalAlignment="Top"                       />
             <Button x:ConnectionId='13' Content="Vertex Shader" HorizontalAlignment="Left" Margin="0,0,0,0" VerticalAlignment="Top"                       />
             <Button x:ConnectionId='14' Content="Geometry Shader" HorizontalAlignment="Left" Margin="0,0,0,0" VerticalAlignment="Top"                       />
-            <TextBlock x:Name="TakeDurationLabel" Margin="0,0,0,0" TextWrapping="Wrap" Text="Duration of take"/>
+            <TextBlock x:Name="TakeDurationLabel" Margin="0,20,0,0" TextWrapping="Wrap" Text="Duration of take"/>
             <TextBlock x:Name="TakeDurationValue" Margin="0,0,0,20" TextWrapping="Wrap" Text="0"/>
             <TextBlock x:Name="FramesRecordedLabel" Margin="0,0,0,0" TextWrapping="Wrap" Text="Frames recorded"/>
             <TextBlock x:Name="FramesRecordedValue" Margin="0,0,0,20" TextWrapping="Wrap" Text="0"/>

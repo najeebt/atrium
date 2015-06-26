@@ -2,6 +2,7 @@
 
 #define MAX_BUFFER_FRAMES 100
 #define RELATIVE_TIME_TO_FRAME_MULT 0.000003
+#define DEPTH_FRAME_BYTE_COUNT 512*424 + 20
 
 #include "Common\StepTimer.h"
 #include "Common\DeviceResources.h"
@@ -83,6 +84,8 @@ namespace KinectRecord
 
 		Windows::Storage::StorageFile^ recordFile;
 		Windows::Storage::Streams::IRandomAccessStream^ recordStream;
+
+		Windows::Storage::Streams::IRandomAccessStream^ takeStream;
 
 		// tracking for recompiling shaders
 		std::vector<Windows::Storage::Search::StorageFileQueryResult^> shaderQueryResult;

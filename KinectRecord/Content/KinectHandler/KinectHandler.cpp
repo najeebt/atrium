@@ -372,7 +372,8 @@ void KinectHandler::InitializeDefaultSensor()
 	/*currentFaceModel = ref new FaceModel();
 	currentFaceAlignment = ref new FaceAlignment();
 	cachedFaceIndices = FaceModel::TriangleIndices;
-*/
+	*/
+	
 	coordinateMapper = kinectSensor->CoordinateMapper;
 
 	kinectSensor->Open();

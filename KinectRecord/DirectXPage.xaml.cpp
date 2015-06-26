@@ -330,7 +330,10 @@ void KinectRecord::DirectXPage::Button_Click_1(Platform::Object^ sender, Windows
 	}
 	else {
 		if (m_main->sessionFolder != nullptr) {
-			m_main->PrepToPlayback();
+			task<void> playback([this] {
+				m_main->PrepToPlayback();
+			});
+			playback.then([] {});
 			m_main->isPlayingBack = true;
 			PlaybackButton->Content = "STOP";
 		}
@@ -345,7 +348,10 @@ void KinectRecord::DirectXPage::Button_Click_1(Platform::Object^ sender, Windows
 				if (file)
 				{
 					m_main->takeFile = file;
-					m_main->PrepToPlayback();
+					task<void> playback([this] {
+						m_main->PrepToPlayback();
+					});
+					playback.then([] {});
 					m_main->isPlayingBack = true;
 					PlaybackButton->Content = "STOP";
 					TimeSlider->Maximum = m_main->playbackBuffer->Size;

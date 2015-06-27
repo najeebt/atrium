@@ -347,7 +347,7 @@ void KinectRecord::DirectXPage::Button_Click_1(Platform::Object^ sender, Windows
 			{
 				if (file)
 				{
-					m_main->takeFile = file;
+					m_main->takeFiles[0] = file;
 					task<void> playback([this] {
 						m_main->PrepToPlayback();
 					});

@@ -22,6 +22,8 @@ streamColor(false),
 currentFrame(1),
 currentTake(1),
 shaderFiles(3),
+takeFiles(TAKE_FILE_COUNT),
+takeStreams(TAKE_FILE_COUNT),
 shaderQueryResult(3),
 m_pointerLocationX(0.0f)
 {
@@ -92,24 +94,38 @@ void KinectRecordMain::PrepToRecord()
 	currentFrame = 1;
 	recStartTime = kinectHandler->GetCurrentDTime();
 
-	// TODO: fix nutso file naming gymnastics
-	std::wstringstream padTake;
-	padTake << std::setfill(L'0') << std::setw(3) << currentTake;
-	std::wstring fname(L"ATRIUM_TAKE_000.adv");
-	fname.replace(12, 3, padTake.str().c_str());
-	Platform::String^ fNameForWin = ref new Platform::String(fname.c_str());
-	currentTake++;
+	{
+		// TODO: fix nutso file naming gymnastics
+		std::wstringstream padTake;
+		padTake << std::setfill(L'0') << std::setw(3) << currentTake;
+		std::wstring fname(L"ATRIUM_TAKE_000");
+		fname.replace(12, 3, padTake.str().c_str());
+		Platform::String^ fNameForWin = ref new Platform::String(fname.c_str());
+		currentTake++;
 
-	takeFile = create_task(sessionFolder->CreateFileAsync(fNameForWin)).get();
-	takeStream = create_task(takeFile->OpenAsync(FileAccessMode::ReadWrite)).get();
+		takeFolder = create_task(sessionFolder->CreateFolderAsync(fNameForWin)).get();
+	}
 
-	auto outputStream = takeStream->GetOutputStreamAt(0);
-	auto writer = ref new DataWriter(outputStream);
-	writer->WriteUInt64(recStartTime);
+	for (int i = 0; i < 10; ++i) {
 
-	create_task(writer->StoreAsync()).then([this, writer](unsigned int bytesStored) {
-		writer->FlushAsync();
-	});
+		// TODO: fix nutso file naming gymnastics
+		std::wstringstream padTake;
+		padTake << std::setfill(L'0') << std::setw(3) << i;
+		std::wstring fname(L"ATRIUM_FILE_000.adv");
+		fname.replace(12, 3, padTake.str().c_str());
+		Platform::String^ fNameForWin = ref new Platform::String(fname.c_str());
+
+		takeFiles[i] = create_task(takeFolder->CreateFileAsync(fNameForWin)).get();
+		takeStreams[i] = create_task(takeFiles[i]->OpenAsync(FileAccessMode::ReadWrite)).get();
+
+		auto outputStream = takeStreams[i]->GetOutputStreamAt(0);
+		auto writer = ref new DataWriter(outputStream);
+		writer->WriteUInt64(recStartTime);
+
+		create_task(writer->StoreAsync()).then([this, writer](unsigned int bytesStored) {
+			writer->FlushAsync();
+		});
+	}
 }
 
 void KinectRecordMain::EndRecording()
@@ -122,7 +138,8 @@ void KinectRecordMain::Record()
 
 		int frameByteCount = DEPTH_PIXEL_COUNT * sizeof(CameraSpacePoint) + sizeof(uint64);
 
-		auto outputStream = takeStream->GetOutputStreamAt(frameByteCount*(currentFrame - 1) + sizeof(uint64));
+		int streamIndex = (float) currentFrame / 500.0;
+		auto outputStream = takeStreams[streamIndex]->GetOutputStreamAt(frameByteCount*((currentFrame - 1) % 500) + sizeof(uint64));
 		auto writer = ref new DataWriter(outputStream);
 
 		auto frameTime = kinectHandler->GetCurrentDTime();
@@ -157,13 +174,13 @@ void KinectRecordMain::PrepToPlayback()
 	// playback from frame 1
 	currentFrame = 1;
 
-	if (takeFile != nullptr) {
+	if (takeFiles[0] != nullptr) {
 		
-		if (takeStream == nullptr) {
-			takeStream = create_task(takeFile->OpenAsync(FileAccessMode::Read)).get();
+		if (takeStreams[0] == nullptr) {
+			takeStreams[0] = create_task(takeFiles[0]->OpenAsync(FileAccessMode::Read)).get();
 		}
 
-		auto basicProperties = create_task(takeFile->GetBasicPropertiesAsync()).get();
+		auto basicProperties = create_task(takeFiles[0]->GetBasicPropertiesAsync()).get();
 		int frameByteCount = DEPTH_PIXEL_COUNT * sizeof(CameraSpacePoint) + sizeof(uint64);
 
 		auto size = basicProperties->Size;
@@ -187,7 +204,7 @@ void KinectRecordMain::CacheFrameForPlayback(int frame)
 {
 	int frameByteCount = DEPTH_PIXEL_COUNT * sizeof(CameraSpacePoint) + sizeof(uint64);
 
-	auto inputStream = takeStream->GetInputStreamAt(frameByteCount*(frame - 1) + sizeof(uint64));
+	auto inputStream = takeStreams[0]->GetInputStreamAt(frameByteCount*(frame - 1) + sizeof(uint64));
 	auto takeReader = ref new DataReader(inputStream);
 
 	unsigned int bytesLoaded = create_task(takeReader->LoadAsync(frameByteCount)).get();
@@ -308,10 +325,10 @@ void KinectRecordMain::ExportTakeToObj()
 
 		isExporting = true;
 
-		if (takeStream == nullptr) {
-			takeStream = create_task(exportFromFile->OpenAsync(FileAccessMode::Read)).get();
+		if (takeStreams[0] == nullptr) {
+			takeStreams[0] = create_task(exportFromFile->OpenAsync(FileAccessMode::Read)).get();
 		}
-		auto inputStream = takeStream->GetInputStreamAt(0);
+		auto inputStream = takeStreams[0]->GetInputStreamAt(0);
 		auto takeReader = ref new DataReader(inputStream);
 
 		int frameByteCount = DEPTH_PIXEL_COUNT * sizeof(CameraSpacePoint) + sizeof(uint64);

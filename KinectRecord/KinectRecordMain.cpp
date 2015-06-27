@@ -236,7 +236,7 @@ int KinectRecordMain::ExportFrameToObj(uint64 startTime, uint64 frameTime, int p
 	fname.replace(13, 3, padFrame.str().c_str());
 	Platform::String^ fNameForWin = ref new Platform::String(fname.c_str());
 
-	create_task(exportToFolder->CreateFileAsync(fNameForWin)).then([this, frameNumber, csps](Windows::Storage::StorageFile^ objFile) {
+	create_task(exportToFolder->CreateFileAsync(fNameForWin, Windows::Storage::CreationCollisionOption::GenerateUniqueName)).then([this, frameNumber, csps](Windows::Storage::StorageFile^ objFile) {
 
 		auto lines = ref new Platform::Collections::Vector<Platform::String^>();
 

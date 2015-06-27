@@ -19,7 +19,6 @@ m_deviceResources(deviceResources),
 isRecording(false),
 isPlayingBack(false),
 streamColor(false),
-writerAvailable(true),
 currentFrame(1),
 currentTake(1),
 shaderFiles(3),
@@ -107,6 +106,10 @@ void KinectRecordMain::PrepToRecord()
 	auto outputStream = takeStream->GetOutputStreamAt(0);
 	auto writer = ref new DataWriter(outputStream);
 	writer->WriteUInt64(recStartTime);
+
+	create_task(writer->StoreAsync()).then([this, writer](unsigned int bytesStored) {
+		writer->FlushAsync();
+	});
 }
 
 void KinectRecordMain::EndRecording()

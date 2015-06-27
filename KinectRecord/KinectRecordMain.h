@@ -58,7 +58,6 @@ namespace KinectRecord
 		bool isRecording;
 		bool isPlayingBack;
 		bool isExporting;
-		bool writerAvailable;
 
 		bool streamColor;
 

@@ -40,7 +40,7 @@
             <TextBlock x:ConnectionId='5' x:Name="FolderDisplay" Margin="0,0,0,20" TextWrapping="Wrap" Text="&lt;none selected&gt;"                                                  />
             <TextBlock x:ConnectionId='6' TextWrapping="Wrap" Text="TAKE" Style="{StaticResource BodyTextBlockStyle}" Height="30"                                                />
             <TextBlock x:Name="TakeDisplay" Margin="0,0,0,20" TextWrapping="Wrap" Text="&lt;none&gt;"/>
-            <Button x:ConnectionId='7' x:Name="RecordButton" Foreground="Red" Content="RECORD" HorizontalAlignment="Left" VerticalAlignment="Top"               />
+            <Button x:ConnectionId='7' x:Name="RecordButton" Foreground="Red" Content="RECORD" HorizontalAlignment="Left" VerticalAlignment="Top"                Height="86" Width="192" FontSize="36"/>
             <Button x:ConnectionId='8' x:Name="PlaybackButton" Content="REPLAY" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Margin="0,0,107,0"                       />
             <Button x:ConnectionId='9' Content="EXPORT FROM" HorizontalAlignment="Stretch"  VerticalAlignment="Stretch" Margin="0,0,72,0"                       />
             <Button x:ConnectionId='10' Content="EXPORT TO" HorizontalAlignment="Stretch"  VerticalAlignment="Stretch" Margin="0,0,72,40" RenderTransformOrigin="0.443,-5.579"                       />
@@ -56,7 +56,7 @@
             <TextBlock x:Name="FPSLabel" Margin="0,0,0,0" TextWrapping="Wrap" Text="FPS of take"/>
             <TextBlock x:Name="FPSValue" Margin="0,0,0,20" TextWrapping="Wrap" Text="0"/>
         </StackPanel>
-        <TextBlock x:ConnectionId='1' x:Name="RecIndicator" Visibility="Collapsed" HorizontalAlignment="Left" Margin="284,101,0,0" TextWrapping="Wrap" Text="REC" VerticalAlignment="Top" Height="48" Width="165"                                                 Style="{StaticResource REC_STYLE}"/>
+        <TextBlock x:ConnectionId='1' x:Name="RecIndicator" Visibility="Collapsed" HorizontalAlignment="Left" Margin="566,389,0,0" TextWrapping="Wrap" Text="RECORDING" FontSize="72" VerticalAlignment="Top" Height="48" Width="507"                                                 Style="{StaticResource REC_STYLE}"/>
         <Slider x:ConnectionId='2' x:Name="TimeSlider" Visibility="Collapsed" HorizontalAlignment="Left" Minimum="1" Margin="60,708,0,0" VerticalAlignment="Top" Width="1213"                                   />
     </SwapChainPanel>
 

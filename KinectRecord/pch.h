@@ -13,7 +13,6 @@
 #include <agile.h>
 #include <concrt.h>
 #include <collection.h>
-#include <Kinect.h>
 #include <ppltasks.h>
 #include <string>
 #include <sstream>

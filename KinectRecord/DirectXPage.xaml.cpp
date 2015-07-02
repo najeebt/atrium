@@ -351,10 +351,12 @@ void KinectRecord::DirectXPage::Button_Click_1(Platform::Object^ sender, Windows
 					task<void> playback([this] {
 						m_main->PrepToPlayback();
 					});
-					playback.then([] {});
-					m_main->isPlayingBack = true;
+					playback.then([this] {
+						m_main->isPlayingBack = true;
+					});
 					PlaybackButton->Content = "STOP";
-					TimeSlider->Maximum = m_main->playbackBuffer->Size;
+					TimeSlider->Maximum = 499;
+					TimeSlider->Visibility = Windows::UI::Xaml::Visibility::Visible;
 				}
 			});
 		}
@@ -401,6 +403,7 @@ void KinectRecord::DirectXPage::Slider_ValueChanged(Platform::Object^ sender, Wi
 {
 	if (m_main) {
 		m_main->currentFrame = e->NewValue;
+		m_main->isSliding = true;
 	}
 }
 

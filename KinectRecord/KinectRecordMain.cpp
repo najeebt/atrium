@@ -18,6 +18,7 @@ KinectRecordMain::KinectRecordMain(const std::shared_ptr<DX::DeviceResources>& d
 m_deviceResources(deviceResources),
 isRecording(false),
 isPlayingBack(false),
+isSliding(false),
 streamColor(false),
 currentFrame(1),
 currentTake(1),
@@ -173,6 +174,8 @@ void KinectRecordMain::PrepToPlayback()
 {
 	// playback from frame 1
 	currentFrame = 1;
+	
+	m_timer.SetTargetElapsedSeconds(1 / 30.0);
 
 	if (takeFiles[0] != nullptr) {
 		
@@ -355,12 +358,17 @@ void KinectRecordMain::ExportTakeToObj()
 			// read camera space points
 			Platform::Array<unsigned char>^ bytes = ref new Platform::Array<unsigned char>(DEPTH_PIXEL_COUNT * 12);
 			takeReader->ReadBytes(bytes);
-			auto csps = ref new Platform::Array<WindowsPreview::Kinect::CameraSpacePoint>(reinterpret_cast<WindowsPreview::Kinect::CameraSpacePoint *>(bytes->begin()), DEPTH_PIXEL_COUNT);
+			if (bytes != nullptr) {
+				auto csps = ref new Platform::Array<WindowsPreview::Kinect::CameraSpacePoint>(reinterpret_cast<WindowsPreview::Kinect::CameraSpacePoint *>(bytes->begin()), DEPTH_PIXEL_COUNT);
 
-			prevFrame = ExportFrameToObj(exportStartTime, frameTime, prevFrame, csps);
+				prevFrame = ExportFrameToObj(exportStartTime, frameTime, prevFrame, csps);
 
-			// try buffering a new frame
-			bytesLoaded = create_task(takeReader->LoadAsync(frameByteCount)).get();
+				// try buffering a new frame
+				bytesLoaded = create_task(takeReader->LoadAsync(frameByteCount)).get();
+			}
+			else {
+				bytesLoaded = 0;
+			}
 		}
 
 		isExporting = false;
@@ -411,14 +419,17 @@ void KinectRecordMain::Update()
 			if (playbackBuffer->Size >= currentFrame) {
 				Platform::Array<WindowsPreview::Kinect::CameraSpacePoint>^ csps = safe_cast<Platform::Array<WindowsPreview::Kinect::CameraSpacePoint>^>(playbackBuffer->GetAt(currentFrame - 1));
 				if (csps != nullptr) {
+					
 					m_sceneRenderer->UpdateVertexBuffer(csps);
 					m_sceneRenderer->UpdateTime(currentFrame);
-					playbackBuffer->SetAt(currentFrame - 1, nullptr);
-
-					task<void> cache_frame([this] {
-						CacheFrameForPlayback((currentFrame + 98) % (playbackBuffer->Size - 1));
+					//playbackBuffer->SetAt(playbackFrame, nullptr);
+/*
+					task<void> cache_frame([this, playbackFrame] {
+						CacheFrameForPlayback((playbackFrame + 98) % (playbackBuffer->Size - 1));
 					});
-					cache_frame.then([] {});
+					cache_frame.then([] {});*/
+				}
+				if (!isSliding) {
 					currentFrame = currentFrame == (playbackBuffer->Size - 1) ? 1 : currentFrame + 1;
 				}
 			}

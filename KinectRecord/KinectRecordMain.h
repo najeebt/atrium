@@ -1,6 +1,6 @@
 ﻿#pragma once
 
-#define MAX_BUFFER_FRAMES 100
+#define MAX_BUFFER_FRAMES 499
 #define RELATIVE_TIME_TO_FRAME_MULT 0.000003
 #define DEPTH_FRAME_BYTE_COUNT 512*424 + 20
 #define TAKE_FILE_COUNT 10
@@ -59,6 +59,7 @@ namespace KinectRecord
 		bool isRecording;
 		bool isPlayingBack;
 		bool isExporting;
+		bool isSliding;
 
 		bool streamColor;
 

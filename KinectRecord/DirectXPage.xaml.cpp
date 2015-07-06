@@ -378,16 +378,16 @@ void KinectRecord::DirectXPage::TextBlock_SelectionChanged_1(Platform::Object^ s
 
 void KinectRecord::DirectXPage::Button_Click_2(Platform::Object^ sender, Windows::UI::Xaml::RoutedEventArgs^ e)
 {
-	FileOpenPicker^ openPicker = ref new FileOpenPicker();
+	FolderPicker^ openPicker = ref new FolderPicker();
 	openPicker->ViewMode = PickerViewMode::List;
 	openPicker->SuggestedStartLocation = PickerLocationId::PicturesLibrary;
 	openPicker->FileTypeFilter->Append(".adv");
 
-	create_task(openPicker->PickSingleFileAsync()).then([this](Windows::Storage::StorageFile^ exportFile)
+	create_task(openPicker->PickSingleFolderAsync()).then([this](Windows::Storage::StorageFolder^ exportFolder)
 	{
-		if (exportFile)
+		if (exportFolder)
 		{
-			m_main->exportFromFile = exportFile;
+			m_main->exportFromFolder = exportFolder;
 		}
 	});
 }

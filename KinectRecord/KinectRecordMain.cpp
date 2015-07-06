@@ -139,7 +139,7 @@ void KinectRecordMain::Record()
 
 		int frameByteCount = DEPTH_PIXEL_COUNT * sizeof(WindowsPreview::Kinect::CameraSpacePoint) + sizeof(uint64);
 
-		int streamIndex = (float) currentFrame / 500.0;
+		int streamIndex = (float)currentFrame / 500.0;
 		auto outputStream = takeStreams[streamIndex]->GetOutputStreamAt(frameByteCount*((currentFrame - 1) % 500) + sizeof(uint64));
 		auto writer = ref new DataWriter(outputStream);
 
@@ -174,11 +174,11 @@ void KinectRecordMain::PrepToPlayback()
 {
 	// playback from frame 1
 	currentFrame = 1;
-	
+
 	m_timer.SetTargetElapsedSeconds(1 / 30.0);
 
 	if (takeFiles[0] != nullptr) {
-		
+
 		if (takeStreams[0] == nullptr) {
 			takeStreams[0] = create_task(takeFiles[0]->OpenAsync(FileAccessMode::Read)).get();
 		}
@@ -230,6 +230,11 @@ int KinectRecordMain::ExportFrameToObj(uint64 startTime, uint64 frameTime, int p
 {
 
 	int frameNumber = CalculateFrameNumber(startTime, frameTime);
+
+	if (frameNumber < 0) {
+		return -1;
+	}
+
 	frameNumber = frameNumber == prevFrame ? frameNumber + 1 : frameNumber;
 
 	// XXX - nutso file naming gymnastics
@@ -324,50 +329,58 @@ int KinectRecordMain::ExportFrameToObj(uint64 startTime, uint64 frameTime, int p
 
 void KinectRecordMain::ExportTakeToObj()
 {
-	if (exportFromFile != nullptr && exportToFolder != nullptr) {
+	if (exportFromFolder != nullptr && exportToFolder != nullptr) {
 
 		isExporting = true;
 
-		if (takeStreams[0] == nullptr) {
-			takeStreams[0] = create_task(exportFromFile->OpenAsync(FileAccessMode::Read)).get();
-		}
-		auto inputStream = takeStreams[0]->GetInputStreamAt(0);
-		auto takeReader = ref new DataReader(inputStream);
+		Platform::Collections::Vector<Platform::String^>^ fileTypes = ref new Platform::Collections::Vector<Platform::String^>();
+		fileTypes->Append(".adv");
+		QueryOptions^ queryOptions = ref new QueryOptions(CommonFileQuery::OrderByName, fileTypes);
+		StorageFileQueryResult^ queryResult = exportFromFolder->CreateFileQueryWithOptions(queryOptions);
+		auto exportFromFiles = create_task(queryResult->GetFilesAsync()).get();
 
-		int frameByteCount = DEPTH_PIXEL_COUNT * sizeof(WindowsPreview::Kinect::CameraSpacePoint) + sizeof(uint64);
+		for (int i = 0; i < exportFromFiles->Size; ++i) {
+			if (takeStreams[i] == nullptr) {
+				takeStreams[i] = create_task(exportFromFiles->GetAt(i)->OpenAsync(FileAccessMode::Read)).get();
+			}
+			auto inputStream = takeStreams[i]->GetInputStreamAt(0);
+			auto takeReader = ref new DataReader(inputStream);
 
-		unsigned int bytesLoaded = create_task(takeReader->LoadAsync(sizeof(uint64))).get();
-		uint64 exportStartTime = 0;
+			int frameByteCount = DEPTH_PIXEL_COUNT * sizeof(WindowsPreview::Kinect::CameraSpacePoint) + sizeof(uint64);
 
-		if (bytesLoaded == sizeof(uint64)) {
-			// ERROR DIALOGUE?
-			exportStartTime = takeReader->ReadUInt64();
-		}
-		else {
-			return;
-		}
+			unsigned int bytesLoaded = create_task(takeReader->LoadAsync(sizeof(uint64))).get();
+			uint64 exportStartTime = 0;
 
-		// now we start loading the actual data
-		bytesLoaded = create_task(takeReader->LoadAsync(frameByteCount)).get();
-		int prevFrame = 0;
-		while (bytesLoaded == frameByteCount) {
-
-			// read frame time
-			uint64 frameTime = takeReader->ReadUInt64();
-
-			// read camera space points
-			Platform::Array<unsigned char>^ bytes = ref new Platform::Array<unsigned char>(DEPTH_PIXEL_COUNT * 12);
-			takeReader->ReadBytes(bytes);
-			if (bytes != nullptr) {
-				auto csps = ref new Platform::Array<WindowsPreview::Kinect::CameraSpacePoint>(reinterpret_cast<WindowsPreview::Kinect::CameraSpacePoint *>(bytes->begin()), DEPTH_PIXEL_COUNT);
-
-				prevFrame = ExportFrameToObj(exportStartTime, frameTime, prevFrame, csps);
-
-				// try buffering a new frame
-				bytesLoaded = create_task(takeReader->LoadAsync(frameByteCount)).get();
+			if (bytesLoaded == sizeof(uint64)) {
+				// ERROR DIALOGUE?
+				exportStartTime = takeReader->ReadUInt64();
 			}
 			else {
-				bytesLoaded = 0;
+				return;
+			}
+
+			// now we start loading the actual data
+			bytesLoaded = create_task(takeReader->LoadAsync(frameByteCount)).get();
+			int prevFrame = 0;
+			while (bytesLoaded == frameByteCount) {
+
+				// read frame time
+				uint64 frameTime = takeReader->ReadUInt64();
+
+				// read camera space points
+				Platform::Array<unsigned char>^ bytes = ref new Platform::Array<unsigned char>(DEPTH_PIXEL_COUNT * 12);
+				takeReader->ReadBytes(bytes);
+				if (bytes != nullptr) {
+					auto csps = ref new Platform::Array<WindowsPreview::Kinect::CameraSpacePoint>(reinterpret_cast<WindowsPreview::Kinect::CameraSpacePoint *>(bytes->begin()), DEPTH_PIXEL_COUNT);
+
+					prevFrame = ExportFrameToObj(exportStartTime, frameTime, prevFrame, csps);
+
+					// try buffering a new frame
+					bytesLoaded = create_task(takeReader->LoadAsync(frameByteCount)).get();
+				}
+				else {
+					bytesLoaded = 0;
+				}
 			}
 		}
 
@@ -419,15 +432,15 @@ void KinectRecordMain::Update()
 			if (playbackBuffer->Size >= currentFrame) {
 				Platform::Array<WindowsPreview::Kinect::CameraSpacePoint>^ csps = safe_cast<Platform::Array<WindowsPreview::Kinect::CameraSpacePoint>^>(playbackBuffer->GetAt(currentFrame - 1));
 				if (csps != nullptr) {
-					
+
 					m_sceneRenderer->UpdateVertexBuffer(csps);
 					m_sceneRenderer->UpdateTime(currentFrame);
 					//playbackBuffer->SetAt(playbackFrame, nullptr);
-/*
-					task<void> cache_frame([this, playbackFrame] {
-						CacheFrameForPlayback((playbackFrame + 98) % (playbackBuffer->Size - 1));
-					});
-					cache_frame.then([] {});*/
+					/*
+										task<void> cache_frame([this, playbackFrame] {
+										CacheFrameForPlayback((playbackFrame + 98) % (playbackBuffer->Size - 1));
+										});
+										cache_frame.then([] {});*/
 				}
 				if (!isSliding) {
 					currentFrame = currentFrame == (playbackBuffer->Size - 1) ? 1 : currentFrame + 1;

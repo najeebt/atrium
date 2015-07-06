@@ -80,7 +80,7 @@ namespace KinectRecord
 		Windows::Storage::StorageFolder^ sessionFolder;
 		Windows::Storage::StorageFolder^ takeFolder;
 		std::vector<Windows::Storage::StorageFile^> takeFiles;
-		Windows::Storage::StorageFile^ exportFromFile;
+		Windows::Storage::StorageFolder^ exportFromFolder;
 		Windows::Storage::StorageFolder^ exportToFolder;
 		std::vector<Windows::Storage::StorageFile^> shaderFiles;
 

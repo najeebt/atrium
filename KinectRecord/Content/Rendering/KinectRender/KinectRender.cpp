@@ -212,8 +212,8 @@ void KinectRender::Update(DX::StepTimer const& timer)
 void KinectRender::Rotate(float radiansX, float radiansY)
 {
 	// Prepare to pass the updated model matrix to the shader
-	XMStoreFloat4x4(&m_constantBufferData.model, XMMatrixTranspose(XMMatrixRotationY(radiansX)));
-	XMStoreFloat4x4(&m_lightViewProjectionBufferData.model, XMMatrixTranspose(XMMatrixRotationY(radiansX)));
+	XMStoreFloat4x4(&m_constantBufferData.model, XMMatrixTranspose(XMMatrixRotationZ(radiansX)));
+	XMStoreFloat4x4(&m_lightViewProjectionBufferData.model, XMMatrixTranspose(XMMatrixRotationZ(radiansX)));
 }
 
 void KinectRender::StartTracking()

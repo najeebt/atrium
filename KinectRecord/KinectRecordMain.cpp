@@ -254,7 +254,7 @@ int KinectRecordMain::ExportFrameToObj(uint64 startTime, uint64 frameTime, int p
 		int vindex = 1;
 		for (int i = 0; i < csps->Length; ++i) {
 			std::wstring wline;
-			if (std::isinf(csps[i].X)) {
+			if (std::isinf(csps[i].X) || csps[i].Z > 2.5) {
 				continue;
 			}
 			else {

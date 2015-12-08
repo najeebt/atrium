@@ -10,7 +10,8 @@ On shoot days, subjects could be captured for minute-long takes spread out over 
 ## FEATURES
 
 - RECORD depth frames at 30 FPS
-- EXPORT to an OBJ sequence for use in any graphics program, with UVs
+- EXPORT to an OBJ sequence for use in any graphics program, with UVs, HOWEVER
+- Also includes PYTHON for reading the binary DIRECT into Houdini – much much faster than OBJ
 - REPLAY takes to see how they went, and view them from different angles
 - Dynamically editable shaders – edit your shader code live and watch the image update
 - Custom DirectX implementation – get in there and write your own live rendering

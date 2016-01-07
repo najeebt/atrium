@@ -9,18 +9,28 @@ On shoot days, subjects could be captured for minute-long takes spread out over 
 
 ## FEATURES
 
-- RECORD depth frames at 30 FPS
-- EXPORT to an OBJ sequence for use in any graphics program, with UVs, HOWEVER
-- Also includes PYTHON for reading the binary DIRECT into Houdini – much much faster than OBJ
+- RECORD depth frames at 30 FPS to a simple, fast binary format
+- READ the binary depth stream via PYTHON included in this project – much much faster than OBJ, or
+- EXPORT to an OBJ sequence for use in any graphics program, with UVs
 - REPLAY takes to see how they went, and view them from different angles
 - Dynamically editable shaders – edit your shader code live and watch the image update
 - Custom DirectX implementation – get in there and write your own live rendering
 - Comes with a Houdini file for easy import and cleanup
 
-## ROOM FOR IMPROVEMENT
+## FUTURE FEATURES
 
 - Color capture is coded and tested, but not activated for performance reasons
 - The UI flow is weird (although it works for real shoots)
 - Joint capture is partly coded
 - Camera control is weak
-- Playback could use a million features
+- Playback could use a nice timeline, play/pause buttons, the works.
+
+
+## JANKY BITS
+
+Do you know Windows Store C++? Do you want to learn? We can use help with the following issues:
+
+- We're currently transforming to 3D coordinates at record-time, which is highly suboptimal
+- The file naming code is dumb
+- There is a very important while loop that is not running on a properly timed thread (works fine, but is jank)
+- UI cannot currently interface effectively with registered event handlers on the Kinect – this is an architecture issue

@@ -16,7 +16,6 @@ This software works with the Kinect v2 and is Windows Store Compatible. If you h
 - REPLAY takes to see how they went, and view them from different angles
 - Dynamically editable shaders – edit your shader code live and watch the image update
 - Custom DirectX implementation – get in there and write your own live rendering
-- Comes with a Houdini file for easy import and cleanup
 
 ## FUTURE FEATURES
 

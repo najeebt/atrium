@@ -8,11 +8,13 @@ On shoot days, subjects could be captured for minute-long takes spread out over 
 
 This software works with the Kinect v2 and is Windows Store Compatible. If you have the [Kinect for Windows SDK](https://www.kinectforwindows.com) and [Microsoft Visual Studio Community](https://www.visualstudio.com/en-us/products/visual-studio-community-vs.aspx) (both free) then you should be able to download this repo, hit compile, and go to to the races.
 
+The software is currently in the patchy state that it was in for the shoot -- very functional for recording depth frames at 30fps and feeding those frames to Houdini. Some other features are in the code, but dormant. Contact me if you're curious about a feature or you'd like to resuscitate one.
+
 ## FEATURES
 
 - RECORD depth frames at 30 FPS to a simple, fast binary format
 - READ the binary depth stream via PYTHON included in this project – much much faster than OBJ, or
-- EXPORT to an OBJ sequence for use in any graphics program, with UVs
+- EXPORT to an OBJ sequence for use in any graphics program
 - REPLAY takes to see how they went, and view them from different angles
 - Dynamically editable shaders – edit your shader code live and watch the image update
 - Custom DirectX implementation – get in there and write your own live rendering

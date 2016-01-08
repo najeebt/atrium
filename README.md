@@ -6,7 +6,7 @@ Atrium is the Kinect for Windows Interface that was used to record all the depth
 
 This software works with the Kinect v2 and is Windows Store Compatible. If you have the [Kinect for Windows SDK](https://www.kinectforwindows.com) and [Microsoft Visual Studio Community](https://www.visualstudio.com/en-us/products/visual-studio-community-vs.aspx) (both free) then you should be able to download this repo, hit compile, and go to to the races.
 
-The software is currently in the patchy state that it was in for the shoot -- very functional for recording depth frames at 30fps and feeding those frames to Houdini. Some other features are in the code, but dormant. Contact me if you're curious about a feature or you'd like to resuscitate one.
+The software is currently in the patchy state that it was in for the shoot -- very functional for recording depth frames at 30fps and feeding those frames to Houdini. Some other features are in the code, but dormant. Contact me if you have questions, and read on to see what's in the code, what's planned for the future, and how you can help.
 
 ## FEATURES
 

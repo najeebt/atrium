@@ -13,7 +13,7 @@ The software is currently in the patchy state that it was in for the shoot -- ve
 ## FEATURES
 
 - RECORD depth frames at 30 FPS to a simple, fast binary format
-- READ the binary depth stream via PYTHON included in this project – much much faster than OBJ, or
+- READ the binary depth stream via PYTHON available on request (in project soon) – much much faster than OBJ, or
 - EXPORT to an OBJ sequence for use in any graphics program
 - REPLAY takes to see how they went, and view them from different angles
 - Dynamically editable shaders – edit your shader code live and watch the image update

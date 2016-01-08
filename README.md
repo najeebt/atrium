@@ -2,9 +2,7 @@
 ### Kinect Recording Software for Filmmakers
 by Najeeb Tarazi
 
-Atrium is the Kinect for Windows Interface that was used to record all the depth capture for ["Another Love," a music video for Nyles Lannon](https://vimeo.com/145706460).
-
-On shoot days, subjects could be captured for minute-long takes spread out over the course of several hours. We ultimately rolled the cameras well over 100 times on three separate Kinects, with few losses of data, each of which was tracked in the moment.
+Atrium is the Kinect for Windows Interface that was used to record all the depth capture for ["Another Love," a music video for Nyles Lannon](https://vimeo.com/145706460). On shoot days, subjects could be captured for minute-long takes, and we did dozens of takes spread out over the course of several hours.
 
 This software works with the Kinect v2 and is Windows Store Compatible. If you have the [Kinect for Windows SDK](https://www.kinectforwindows.com) and [Microsoft Visual Studio Community](https://www.visualstudio.com/en-us/products/visual-studio-community-vs.aspx) (both free) then you should be able to download this repo, hit compile, and go to to the races.
 

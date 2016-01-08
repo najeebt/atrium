@@ -29,13 +29,14 @@ The software is currently in the patchy state that it was in for the shoot -- ve
 
 ## JANKY BITS
 
-Do you know Windows Store C++? Do you want to learn? We can use help with the following issues:
+Do you know Windows Store C++? Do you want to learn? Here are some places WE COULD USE YOUR HELP!
 
 - We're currently transforming to 3D coordinates at record-time, which is highly suboptimal. Ideally you just record the depth frames and transform them into 3D coordinates when you're ready.
 - There's a system 2G file size limit which requires pre-generating a set of files to which we can stream data. The magic number of these files right now is 10. I would love to find a way to write to a single file (the key, again, may be in an Alembic or USD library)
 - The file naming code is dumb
 - There is a very important while loop that is not running on a properly timed thread (works fine, but is jank)
 - UI cannot currently interface effectively with registered event handlers on the Kinect to active/deactivate different types of feeds – this is an architecture issue
+- Cleanup and refactoring is always welcome (as long as the program still works!)
 
 Please contact me if you'd like to contribute or you have any questions!
 

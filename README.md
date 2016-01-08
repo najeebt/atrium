@@ -40,3 +40,7 @@ Do you know Windows Store C++? Do you want to learn? We can use help with the fo
 - UI cannot currently interface effectively with registered event handlers on the Kinect to active/deactivate different types of feeds – this is an architecture issue
 
 Please contact me if you'd like to contribute or you have any questions!
+
+### License
+
+Licensed under the Apache License, Version 2.0. Please see the LICENSE and NOTICE files in the root directory of this project for license information.
